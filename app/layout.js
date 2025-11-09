@@ -1,0 +1,41 @@
+import localFont from "next/font/local";
+import "./globals.css";
+import ClientLayoutWrapper from "./-app"; // 👈 New client wrapper
+
+
+const geistSans = localFont({
+  src: "./fonts/GeistVF.woff",
+  variable: "--font-geist-sans",
+  weight: "100 900",
+});
+
+const geistMono = localFont({
+  src: "./fonts/GeistMonoVF.woff",
+  variable: "--font-geist-mono",
+  weight: "100 900",
+});
+
+export const metadata = {
+  title: "Katwanyaa High School | Nurturing Excellence, Shaping Futures",
+  description:
+    "Official website for Katwanyaa High School. Discover our academic programs, vibrant community, and achievements in STEAM and co-curricular activities.",
+  icons: {
+    icon: [
+      { url: "./public/logo.jpg", type: "image/jpg", sizes: "32x32" },
+      { url: "/public/logo.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: "./public/logo.jpg",
+  },
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-900`}
+      >
+        <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
+      </body>
+    </html>
+  );
+}
