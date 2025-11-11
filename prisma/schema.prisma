@@ -71,3 +71,27 @@ model Subscriber {
 
   @@map("subscribers")
 }
+
+
+model Assignment {
+  id                 Int       @id @default(autoincrement())
+  title              String
+  subject            String
+  className          String
+  teacher            String
+  dueDate            DateTime
+  dateAssigned       DateTime
+  status             String     
+  description        String    @db.Text  // Use TEXT type for long content
+  instructions       String?   @db.Text  // Use TEXT type for long content
+  assignmentFiles    Json      
+  attachments        Json      
+  priority           String    
+  estimatedTime      String?   
+  additionalWork     String?   @db.Text  // Use TEXT type for long content
+  teacherRemarks     String?   @db.Text  // Use TEXT type for long content
+  feedback           String?   @db.Text  // Use TEXT type for long content
+  learningObjectives Json      
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}

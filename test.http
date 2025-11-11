@@ -1,24 +1,383 @@
+### Environment Variables
+@baseUrl = http://localhost:3000/api
+@contentType = application/json
+@multipartContentType = multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
+### 🎯 ASSIGNMENT API TESTS
+### get all the assinments
+GET {{baseUrl}}/assignment
+Content-Type: {{contentType}}
 
+### 1. Create a New Assignment (Multipart Form Data)
+POST {{baseUrl}}/assignment
+Content-Type: {{multipartContentType}}
 
-### Register user (POST)
-POST http://localhost:3000/api/register
-Content-Type: application/json
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Mathematics Assignment - Algebra
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="subject"
+
+Mathematics
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="className"
+
+Form 1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="teacher"
+
+Mr. Michael Njoroge
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="dueDate"
+
+2024-03-20T23:59:00
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="dateAssigned"
+
+2024-03-10T00:00:00
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="status"
+
+assigned
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Solve quadratic equations and simultaneous equations from pages 45-50. Show all working steps clearly. This assignment focuses on developing algebraic thinking and problem-solving skills essential for advanced mathematics.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="instructions"
+
+Complete all problems showing step-by-step solutions. Submit your work by the deadline. Ensure all calculations are clearly shown and final answers are boxed.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="priority"
+
+high
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="estimatedTime"
+
+2 hours
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="additionalWork"
+
+Optional: Try the bonus problems on page 52 for extra credit. Research real-world applications of quadratic equations.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="teacherRemarks"
+
+Focus on proper formatting and show all calculations clearly. Pay special attention to the discriminant in quadratic equations.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="learningObjectives"
+
+["Solve quadratic equations using factorization", "Apply the quadratic formula correctly", "Solve simultaneous equations algebraically", "Interpret solutions in real-world contexts"]
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="assignmentFiles"; filename="algebra_problems.pdf"
+Content-Type: application/pdf
+
+< ./test-files/sample.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="assignmentFiles"; filename="solution_template.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./test-files/sample.docx
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="attachments"; filename="worksheet.pdf"
+Content-Type: application/pdf
+
+< ./test-files/sample.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 2. Create English Assignment
+POST {{baseUrl}}/assignments
+Content-Type: {{multipartContentType}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+English Composition - Argumentative Essay
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="subject"
+
+English
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="className"
+
+Form 2
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="teacher"
+
+Mrs. Elizabeth Muthoni
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="dueDate"
+
+2024-03-18T23:59:00
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="dateAssigned"
+
+2024-03-05T00:00:00
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="status"
+
+assigned
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Write a 500-word composition on "The Importance of Education" with proper grammar and structure. Develop a clear thesis statement and support it with relevant examples.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="instructions"
+
+Use formal academic language and include at least three supporting arguments. Include an introduction, three body paragraphs, and a conclusion.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="priority"
+
+medium
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="estimatedTime"
+
+1.5 hours
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="teacherRemarks"
+
+Pay attention to paragraph structure and thesis statement development. Focus on transitional phrases between paragraphs.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="learningObjectives"
+
+["Develop a clear thesis statement", "Structure an argumentative essay", "Use persuasive language effectively", "Incorporate evidence to support arguments"]
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 3. Create Biology Assignment
+POST {{baseUrl}}/assignments
+Content-Type: {{multipartContentType}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Biology Practical Report - Plant Cell Structure
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="subject"
+
+Biology
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="className"
+
+Form 3
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="teacher"
+
+Mr. Peter Kamau
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="dueDate"
+
+2024-03-25T23:59:00
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="dateAssigned"
+
+2024-03-12T00:00:00
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="status"
+
+assigned
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Write a detailed report on the plant cell structure practical with labeled diagrams. Include observations from microscope work and analysis of cell components.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="priority"
+
+high
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="estimatedTime"
+
+3 hours
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="learningObjectives"
+
+["Identify plant cell organelles", "Use microscope techniques effectively", "Create accurate biological drawings", "Write scientific reports following proper format"]
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 4. Get All Assignments (No Filters)
+GET {{baseUrl}}/assignments
+Content-Type: {{contentType}}
+
+### 5. Get Assignments with Class Filter
+GET {{baseUrl}}/assignments?class=Form 1
+Content-Type: {{contentType}}
+
+### 6. Get Assignments with Subject Filter
+GET {{baseUrl}}/assignments?subject=Mathematics
+Content-Type: {{contentType}}
+
+### 7. Get Assignments with Status Filter
+GET {{baseUrl}}/assignments?status=assigned
+Content-Type: {{contentType}}
+
+### 8. Get Assignments with Multiple Filters
+GET {{baseUrl}}/assignments?class=Form 1&subject=Mathematics&status=assigned
+Content-Type: {{contentType}}
+
+### 9. Get Assignments with Search
+GET {{baseUrl}}/assignments?search=algebra
+Content-Type: {{contentType}}
+
+### 10. Get Assignments with Pagination
+GET {{baseUrl}}/assignments?page=1&limit=5
+Content-Type: {{contentType}}
+
+### 11. Get Single Assignment by ID
+GET {{baseUrl}}/assignments/1
+Content-Type: {{contentType}}
+
+### 12. Update Assignment
+PUT {{baseUrl}}/assignments/1
+Content-Type: {{contentType}}
 
 {
-  "name": "John Mrcos",
-  "email": "john@tokatwanyaa.ac.ke",
-  "password": "SecurePass123!",
-  "phone": "+254712345678",
-  "role": "TEACHER"
+  "title": "Mathematics Assignment - Advanced Algebra",
+  "description": "Updated description with more detailed instructions for quadratic equations and simultaneous equations.",
+  "priority": "urgent",
+  "estimatedTime": "3 hours",
+  "additionalWork": "Mandatory: Complete all bonus problems for full credit."
 }
 
+### 13. Update Assignment Status to Reviewed
+PATCH {{baseUrl}}/assignments/1/status
+Content-Type: {{contentType}}
 
-
-###login testing 
-POST http://localhost:3000/api/login
-Content-Type: application/json
 {
-  "email": "john.doe@tokatwanyaa.ac.ke",
-  "password": "SecurePass123!"
+  "status": "reviewed",
+  "feedback": "Excellent work! Great structure and clear calculations. Your solutions show strong understanding of algebraic concepts.",
+  "grade": "A"
 }
+
+### 14. Update Assignment Status to Extended
+PATCH {{baseUrl}}/assignments/3/status
+Content-Type: {{contentType}}
+
+{
+  "status": "extended",
+  "teacherRemarks": "EXTENDED DEADLINE: New due date is 2024-03-28. Use the extra time to include more detailed microscope observations."
+}
+
+### 15. Delete Assignment
+DELETE {{baseUrl}}/assignments/5
+Content-Type: {{contentType}}
+
+### 🚨 ERROR TESTING
+
+### 16. Create Assignment with Missing Required Fields
+POST {{baseUrl}}/assignments
+Content-Type: {{multipartContentType}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Test Assignment
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+This should fail due to missing required fields.
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 17. Get Non-Existent Assignment
+GET {{baseUrl}}/assignments/999
+Content-Type: {{contentType}}
+
+### 18. Update Non-Existent Assignment
+PUT {{baseUrl}}/assignments/999
+Content-Type: {{contentType}}
+
+{
+  "title": "This should fail"
+}
+
+### 19. Delete Non-Existent Assignment
+DELETE {{baseUrl}}/assignments/999
+Content-Type: {{contentType}}
+
+### 20. Update Status with Invalid Data
+PATCH {{baseUrl}}/assignments/1/status
+Content-Type: {{contentType}}
+
+{
+  "invalidField": "This should fail"
+}
+
+### 📊 BULK OPERATIONS TESTING
+
+### 21. Create Multiple Assignments for Testing Filters
+POST {{baseUrl}}/assignments
+Content-Type: {{multipartContentType}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Physics Calculations - Mechanics
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="subject"
+
+Physics
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="className"
+
+Form 4
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="teacher"
+
+Dr. Sarah Chen
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="dueDate"
+
+2024-03-22T23:59:00
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="status"
+
+extended
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Solve mechanics problems from chapter 3 including motion and forces calculations. Apply Newton's laws to various scenarios.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="priority"
+
+urgent
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 22. Create Chemistry Assignment
+POST {{baseUrl}}/assignments
+Content-Type: {{multipartContentType}}
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Chemistry Lab Report - Chemical Reactions
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="subject"
+
+Chemistry
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="className"
+
+Form 4
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="teacher"
+
+Dr. Sarah Chen
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="dueDate"
+
+2024-03-28T23:59:00
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="status"
+
+assigned
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Document chemical reactions and their practical applications with safety precautions. Include observations and balanced chemical equations.
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="priority"
+
+high
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 23. Create History Assignment
+GET {{baseUrl}}/assignment
+Content-Type: {{multipartContentType}}
