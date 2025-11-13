@@ -202,3 +202,29 @@ enum Department {
   ARTS
   OTHER
 }
+
+model Student {
+  id                  Int      @id @default(autoincrement())
+  admissionNumber     String   @unique
+  name                String
+  form                String
+  stream              String
+  gender              String
+  dateOfBirth         DateTime
+  enrollmentDate      DateTime
+  kcpeMarks           Int?
+  previousSchool      String?
+  parentName          String
+  parentEmail         String?
+  parentPhone         String
+  emergencyContact    String
+  address             String
+  medicalInfo         String?
+  hobbies             String?
+  academicPerformance String
+  attendance          String
+  disciplineRecord    String
+  status              String   @default("Active")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}

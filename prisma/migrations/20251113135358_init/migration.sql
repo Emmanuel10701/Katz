@@ -180,5 +180,35 @@ CREATE TABLE `GalleryImage` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `Student` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `admissionNumber` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `form` VARCHAR(191) NOT NULL,
+    `stream` VARCHAR(191) NOT NULL,
+    `gender` VARCHAR(191) NOT NULL,
+    `dateOfBirth` DATETIME(3) NOT NULL,
+    `enrollmentDate` DATETIME(3) NOT NULL,
+    `kcpeMarks` INTEGER NULL,
+    `previousSchool` VARCHAR(191) NULL,
+    `parentName` VARCHAR(191) NOT NULL,
+    `parentEmail` VARCHAR(191) NULL,
+    `parentPhone` VARCHAR(191) NOT NULL,
+    `emergencyContact` VARCHAR(191) NOT NULL,
+    `address` VARCHAR(191) NOT NULL,
+    `medicalInfo` VARCHAR(191) NULL,
+    `hobbies` VARCHAR(191) NULL,
+    `academicPerformance` VARCHAR(191) NOT NULL,
+    `attendance` VARCHAR(191) NOT NULL,
+    `disciplineRecord` VARCHAR(191) NOT NULL,
+    `status` VARCHAR(191) NOT NULL DEFAULT 'Active',
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `Student_admissionNumber_key`(`admissionNumber`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- AddForeignKey
 ALTER TABLE `PasswordReset` ADD CONSTRAINT `PasswordReset_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
