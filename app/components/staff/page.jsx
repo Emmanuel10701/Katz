@@ -20,13 +20,19 @@ import {
   FiBriefcase,
   FiEye,
   FiStar,
-  FiShield
+  FiShield,
+  FiRotateCw,
+  FiUpload
 } from 'react-icons/fi';
 import { 
   IoPeopleCircle,
   IoRocketOutline,
   IoSchoolOutline
 } from 'react-icons/io5';
+
+// Import your local avatar images
+import male from "../../../images/avata/male.png";
+import female from "../../../images/avata/female.png";
 
 export default function StaffManager() {
   const [staff, setStaff] = useState([]);
@@ -40,108 +46,64 @@ export default function StaffManager() {
   const [editingStaff, setEditingStaff] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
-  const [teachers, setTeachers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [newResponsibility, setNewResponsibility] = useState('');
+  const [newExpertise, setNewExpertise] = useState('');
+  const [newAchievement, setNewAchievement] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
     role: 'Teacher',
     position: '',
-    department: 'Science',
+    department: 'Sciences',
     email: '',
     phone: '',
     image: '',
-    experience: '',
-    qualifications: '',
-    specialization: '',
-    dateOfBirth: '',
-    joinDate: '',
-    address: '',
-    emergencyContact: '',
     bio: '',
     responsibilities: [],
-    status: 'active',
-    reportsTo: ''
+    expertise: [],
+    achievements: [],
+    status: 'active'
   });
+
+  // Available roles and departments based on your API structure
+  const roles = ['Principal', 'Deputy Principal', 'Teacher', 'BOM Member', 'Support Staff', 'Librarian', 'Counselor'];
+  const departments = ['Sciences', 'Mathematics', 'Languages', 'Humanities', 'Administration', 'Sports', 'Guidance'];
+
+  // Fetch staff from API
+  const fetchStaff = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/staff');
+      const data = await response.json();
+      
+      if (data.success) {
+        setStaff(data.staff || []);
+        setFilteredStaff(data.staff || []);
+      } else {
+        console.error('Failed to fetch staff:', data.error);
+        setStaff([]);
+        setFilteredStaff([]);
+      }
+    } catch (error) {
+      console.error('Error fetching staff:', error);
+      setStaff([]);
+      setFilteredStaff([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStaff();
+  }, []);
 
   // Check if principal exists
   const principalExists = staff.some(s => s.role === 'Principal');
   const deputyPrincipalsCount = staff.filter(s => s.role === 'Deputy Principal').length;
-
-  // Enhanced sample data with realistic staff structure
-  useEffect(() => {
-    const sampleStaff = [
-      {
-        id: 1,
-        name: 'Dr. James Mwangi',
-        role: 'Principal',
-        position: 'School Principal',
-        department: 'Administration',
-        email: 'principal@katwanyaa.ac.ke',
-        phone: '+254712345678',
-        image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face',
-        experience: '25 years',
-        qualifications: 'PhD in Educational Leadership, M.Ed',
-        specialization: 'Educational Administration',
-        dateOfBirth: '1970-05-15',
-        joinDate: '2010-01-15',
-        address: 'P.O Box 123, Nairobi',
-        emergencyContact: '+254723456789',
-        bio: 'Dedicated educational leader with 25 years of experience in school administration and curriculum development.',
-        responsibilities: ['Overall School Management', 'Strategic Planning', 'Staff Supervision'],
-        status: 'active'
-      },
-      {
-        id: 2,
-        name: 'Mrs. Sarah Kamau',
-        role: 'Deputy Principal',
-        position: 'Deputy Principal - Academics',
-        department: 'Administration',
-        email: 'deputy.academics@katwanyaa.ac.ke',
-        phone: '+254712345679',
-        image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-        experience: '20 years',
-        qualifications: 'M.Ed in Curriculum Development, B.Ed',
-        specialization: 'Curriculum Development',
-        dateOfBirth: '1975-08-22',
-        joinDate: '2012-03-10',
-        address: 'P.O Box 456, Nairobi',
-        emergencyContact: '+254723456790',
-        bio: 'Passionate about academic excellence and student development.',
-        responsibilities: ['Academic Programs', 'Teacher Supervision', 'Performance Monitoring'],
-        status: 'active',
-        reportsTo: 'Principal'
-      }
-    ];
-
-    // Add more sample staff
-    for (let i = 3; i <= 32; i++) {
-      sampleStaff.push({
-        id: i,
-        name: `Staff Member ${i}`,
-        role: ['Teacher', 'HOD', 'Counselor', 'Librarian', 'Support Staff'][Math.floor(Math.random() * 5)],
-        position: ['Senior Teacher', 'Class Teacher', 'Subject Head', 'Guidance Counselor'][Math.floor(Math.random() * 4)],
-        department: ['Science', 'Mathematics', 'Languages', 'Humanities', 'Sports'][Math.floor(Math.random() * 5)],
-        email: `staff${i}@katwanyaa.ac.ke`,
-        phone: `+2547${Math.floor(Math.random() * 90000000 + 10000000)}`,
-        image: `https://images.unsplash.com/photo-15${i % 10}${(i % 9) + 1}?w=150&h=150&fit=crop&crop=face`,
-        experience: `${Math.floor(Math.random() * 20) + 5} years`,
-        qualifications: ['M.Ed', 'B.Ed', 'PhD', 'MSc', 'BSc'][Math.floor(Math.random() * 5)],
-        specialization: ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'History'][Math.floor(Math.random() * 6)],
-        dateOfBirth: `19${Math.floor(Math.random() * 30) + 70}-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
-        joinDate: `202${Math.floor(Math.random() * 4)}-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
-        address: `Address ${i}, Nairobi`,
-        emergencyContact: `+2547${Math.floor(Math.random() * 90000000 + 10000000)}`,
-        bio: 'Dedicated educator with passion for teaching and student development.',
-        responsibilities: ['Teaching', 'Curriculum Development', 'Student Assessment'],
-        status: ['active', 'on-leave', 'inactive'][Math.floor(Math.random() * 3)],
-        reportsTo: ['Principal', 'Deputy Principal'][Math.floor(Math.random() * 2)]
-      });
-    }
-
-    setStaff(sampleStaff);
-    setFilteredStaff(sampleStaff);
-    setTeachers(sampleStaff.filter(s => s.role === 'Teacher'));
-  }, []);
 
   // Filtering and pagination
   useEffect(() => {
@@ -180,28 +142,37 @@ export default function StaffManager() {
       name: '',
       role: 'Teacher',
       position: '',
-      department: 'Science',
+      department: 'Sciences',
       email: '',
       phone: '',
-      image: '',
-      experience: '',
-      qualifications: '',
-      specialization: '',
-      dateOfBirth: '',
-      joinDate: '',
-      address: '',
-      emergencyContact: '',
+      image: male, // Default to male avatar
       bio: '',
       responsibilities: [],
-      status: 'active',
-      reportsTo: ''
+      expertise: [],
+      achievements: [],
+      status: 'active'
     });
+    setImageFile(null);
+    setImagePreview(male); // Default preview to male avatar
+    setNewResponsibility('');
+    setNewExpertise('');
+    setNewAchievement('');
     setEditingStaff(null);
     setShowModal(true);
   };
 
   const handleEdit = (staffMember) => {
-    setFormData({ ...staffMember });
+    setFormData({ 
+      ...staffMember,
+      responsibilities: Array.isArray(staffMember.responsibilities) ? staffMember.responsibilities : [],
+      expertise: Array.isArray(staffMember.expertise) ? staffMember.expertise : [],
+      achievements: Array.isArray(staffMember.achievements) ? staffMember.achievements : []
+    });
+    setImagePreview(staffMember.image || male); // Default to male avatar if no image
+    setImageFile(null);
+    setNewResponsibility('');
+    setNewExpertise('');
+    setNewAchievement('');
     setEditingStaff(staffMember);
     setShowModal(true);
   };
@@ -211,59 +182,150 @@ export default function StaffManager() {
     setShowDetailModal(true);
   };
 
-  const handleDelete = (id) => {
-    if (confirm('Are you sure you want to delete this staff member?')) {
-      setStaff(staff.filter(staffMember => staffMember.id !== id));
+const handleDelete = async (id) => {
+  if (confirm('Are you sure you want to delete this staff member?')) {
+    try {
+      const response = await fetch(`/api/staff/${id}`, { // Include ID in URL
+        method: 'DELETE',
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        await fetchStaff(); // Refresh the list
+        alert('Staff member deleted successfully!');
+      } else {
+        alert(result.error || 'Failed to delete staff member');
+      }
+    } catch (error) {
+      console.error('Error deleting staff member:', error);
+      alert('Error deleting staff member');
+    }
+  }
+};
+  // Handle image file selection
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+      setFormData({ ...formData, image: '' }); // Clear avatar selection when file is uploaded
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  // Array field handlers
+  const addResponsibility = () => {
+    if (newResponsibility.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        responsibilities: [...prev.responsibilities, newResponsibility.trim()]
+      }));
+      setNewResponsibility('');
+    }
+  };
+
+  const addExpertise = () => {
+    if (newExpertise.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        expertise: [...prev.expertise, newExpertise.trim()]
+      }));
+      setNewExpertise('');
+    }
+  };
+
+  const addAchievement = () => {
+    if (newAchievement.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        achievements: [...prev.achievements, newAchievement.trim()]
+      }));
+      setNewAchievement('');
+    }
+  };
+
+  const removeArrayItem = (field, index) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
+  };
+
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  // Validation for unique roles
+  if (formData.role === 'Principal' && principalExists && !editingStaff) {
+    alert('A Principal already exists. There can only be one Principal.');
+    return;
+  }
+
+  if (formData.role === 'Deputy Principal' && deputyPrincipalsCount >= 2 && !editingStaff) {
+    alert('Maximum of two Deputy Principals allowed.');
+    return;
+  }
+
+  setSaving(true);
+  try {
+    // Create FormData for file upload
+    const submitData = new FormData();
     
-    // Validation for unique roles
-    if (formData.role === 'Principal' && principalExists && !editingStaff) {
-      alert('A Principal already exists. There can only be one Principal.');
-      return;
+    // Append all form data
+    submitData.append('name', formData.name);
+    submitData.append('role', formData.role);
+    submitData.append('position', formData.position);
+    submitData.append('department', formData.department);
+    submitData.append('email', formData.email);
+    submitData.append('phone', formData.phone);
+    submitData.append('bio', formData.bio);
+    submitData.append('status', formData.status);
+    
+    // Append arrays as JSON strings
+    submitData.append('responsibilities', JSON.stringify(formData.responsibilities));
+    submitData.append('expertise', JSON.stringify(formData.expertise));
+    submitData.append('achievements', JSON.stringify(formData.achievements));
+    
+    // Append image file if selected, otherwise append the avatar URL
+    if (imageFile) {
+      submitData.append('image', imageFile);
+    } else if (formData.image && (formData.image === male || formData.image === female)) {
+      // If an avatar is selected, we need to handle this differently
+      // For now, we'll skip image upload for avatars since they're already in the app
+      console.log('Using default avatar');
     }
 
-    if (formData.role === 'Deputy Principal' && deputyPrincipalsCount >= 2 && !editingStaff) {
-      alert('Maximum of two Deputy Principals allowed.');
-      return;
-    }
-
+    let response;
     if (editingStaff) {
-      setStaff(staff.map(staffMember => 
-        staffMember.id === editingStaff.id 
-          ? { ...formData, id: editingStaff.id }
-          : staffMember
-      ));
+      // Update existing staff - include ID in URL
+      response = await fetch(`/api/staff/${editingStaff.id}`, {
+        method: 'PUT',
+        body: submitData,
+      });
     } else {
-      const newStaff = {
-        ...formData,
-        id: Date.now(),
-        image: formData.image || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face`
-      };
-      setStaff([...staff, newStaff]);
+      // Create new staff
+      response = await fetch('/api/staff', {
+        method: 'POST',
+        body: submitData,
+      });
     }
-    setShowModal(false);
-  };
 
-  const departments = [
-    'Administration', 'Science', 'Mathematics', 'Languages', 
-    'Humanities', 'Sports', 'Guidance', 'Board of Management'
-  ];
+    const result = await response.json();
 
-  const roles = [
-    'Teacher', 'Principal', 'Deputy Principal', 'HOD', 
-    'Counselor', 'Librarian', 'Accountant', 'Support Staff'
-  ];
-
-  // Get available supervisors based on role
-  const getAvailableSupervisors = () => {
-    return staff.filter(s => 
-      s.role === 'Principal' || s.role === 'Deputy Principal'
-    );
-  };
+    if (result.success) {
+      await fetchStaff(); // Refresh the list
+      setShowModal(false);
+      alert(`Staff member ${editingStaff ? 'updated' : 'created'} successfully!`);
+    } else {
+      alert(result.error || `Failed to ${editingStaff ? 'update' : 'create'} staff member`);
+    }
+  } catch (error) {
+    console.error('Error saving staff member:', error);
+    alert('Error saving staff member');
+  } finally {
+    setSaving(false);
+  }
+};
 
   const Pagination = () => (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
@@ -319,8 +381,8 @@ export default function StaffManager() {
     const roleColors = {
       'Principal': 'from-purple-500 to-purple-600',
       'Deputy Principal': 'from-blue-500 to-blue-600',
-      'HOD': 'from-green-500 to-green-600',
       'Teacher': 'from-orange-500 to-orange-600',
+      'BOM Member': 'from-green-500 to-green-600',
       'Counselor': 'from-pink-500 to-pink-600',
       'Librarian': 'from-indigo-500 to-indigo-600',
       'Support Staff': 'from-gray-500 to-gray-600'
@@ -333,6 +395,21 @@ export default function StaffManager() {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50/30 flex items-center justify-center">
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-gray-600 text-lg">Loading staff data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 lg:p-6 space-y-6">
       {/* Header */}
@@ -343,15 +420,24 @@ export default function StaffManager() {
           </h1>
           <p className="text-gray-600 mt-2">Manage teaching staff, administration, and board members</p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleCreate}
-          className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-4 lg:px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-lg shadow-orange-500/25 w-full lg:w-auto justify-center"
-        >
-          <FiPlus className="text-lg" />
-          Add Staff
-        </motion.button>
+        <div className="flex gap-3">
+          <button 
+            onClick={fetchStaff}
+            className="px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-lg"
+          >
+            <FiRotateCw className="text-lg" />
+            Refresh
+          </button>
+          <motion.button
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleCreate}
+            className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-4 lg:px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-lg shadow-orange-500/25 w-full lg:w-auto justify-center"
+          >
+            <FiPlus className="text-lg" />
+            Add Staff
+          </motion.button>
+        </div>
       </div>
 
       {/* Staff Stats */}
@@ -383,7 +469,7 @@ export default function StaffManager() {
             <div>
               <p className="text-green-100 text-sm">Administration</p>
               <p className="text-xl lg:text-3xl font-bold mt-2">
-                {staff.filter(s => s.department === 'Administration').length}
+                {staff.filter(s => s.role === 'Principal' || s.role === 'Deputy Principal').length}
               </p>
             </div>
             <FiAward className="text-xl lg:text-2xl text-green-200" />
@@ -393,9 +479,9 @@ export default function StaffManager() {
         <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-4 lg:p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm">Leadership</p>
+              <p className="text-purple-100 text-sm">BOM Members</p>
               <p className="text-xl lg:text-3xl font-bold mt-2">
-                {staff.filter(s => ['Principal', 'Deputy Principal'].includes(s.role)).length}
+                {staff.filter(s => s.role === 'BOM Member').length}
               </p>
             </div>
             <FiShield className="text-xl lg:text-2xl text-purple-200" />
@@ -454,11 +540,11 @@ export default function StaffManager() {
           >
             <div className="relative inline-block mb-4">
               <img
-                src={staffMember.image}
+                src={staffMember.image || male}
                 alt={staffMember.name}
-                className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl object-cover mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg"
+                className="w-24 h-24 lg:w-28 lg:h-28 rounded-2xl object-cover mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg"
               />
-              <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
+              <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
                 staffMember.status === 'active' ? 'bg-green-500' :
                 staffMember.status === 'on-leave' ? 'bg-yellow-500' :
                 'bg-gray-500'
@@ -475,11 +561,11 @@ export default function StaffManager() {
             
             <div className="space-y-2 mb-4 text-xs">
               <div className="flex items-center justify-center gap-1 text-gray-600">
-                <FiAward className="text-yellow-500" />
-                <span>{staffMember.experience}</span>
+                <FiBriefcase className="text-orange-500" />
+                <span>{staffMember.position}</span>
               </div>
-              <div className="text-gray-600">
-                {staffMember.qualifications}
+              <div className="text-gray-600 line-clamp-2">
+                {staffMember.bio}
               </div>
             </div>
             
@@ -532,6 +618,19 @@ export default function StaffManager() {
         </div>
       )}
 
+      {filteredStaff.length === 0 && !loading && (
+        <div className="text-center py-12 bg-white rounded-2xl shadow-lg border border-gray-200/50">
+          <FiUser className="text-gray-300 text-4xl mx-auto mb-4" />
+          <p className="text-gray-500 text-lg">No staff members found</p>
+          <p className="text-gray-400 text-sm mt-2">
+            {searchTerm || selectedDepartment !== 'all' || selectedRole !== 'all' 
+              ? 'Try adjusting your search or filters' 
+              : 'Add your first staff member to get started'
+            }
+          </p>
+        </div>
+      )}
+
       {/* Create/Edit Modal */}
       <AnimatePresence>
         {showModal && (
@@ -565,6 +664,93 @@ export default function StaffManager() {
 
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Image Upload */}
+                  <div className="lg:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Profile Image
+                    </label>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0">
+                          <img
+                            src={imagePreview || male}
+                            alt="Preview"
+                            className="w-20 h-20 rounded-2xl object-cover shadow-lg"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageChange}
+                              className="hidden"
+                            />
+                            <div className="px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer flex items-center gap-2">
+                              <FiUpload className="text-orange-500" />
+                              <span className="text-sm font-semibold text-gray-700">
+                                {imageFile ? 'Change Image' : 'Upload Image'}
+                              </span>
+                            </div>
+                          </label>
+                          {imageFile && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Selected: {imageFile.name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Avatar Selection */}
+                      <div>
+                        <p className="text-sm text-gray-600 mb-2">Or select a default avatar:</p>
+                        <div className="flex gap-4">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setImageFile(null);
+                              setImagePreview(male);
+                              setFormData({ ...formData, image: male });
+                            }}
+                            className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                              formData.image === male
+                                ? 'border-orange-500 bg-orange-50' 
+                                : 'border-gray-200 hover:border-orange-300'
+                            }`}
+                          >
+                            <img
+                              src={male}
+                              alt="Male Avatar"
+                              className="w-16 h-16 rounded-xl object-cover"
+                            />
+                            <span className="text-xs font-medium text-gray-700">Male Avatar</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setImageFile(null);
+                              setImagePreview(female);
+                              setFormData({ ...formData, image: female });
+                            }}
+                            className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                              formData.image === female
+                                ? 'border-orange-500 bg-orange-50' 
+                                : 'border-gray-200 hover:border-orange-300'
+                            }`}
+                          >
+                            <img
+                              src={female}
+                              alt="Female Avatar"
+                              className="w-16 h-16 rounded-xl object-cover"
+                            />
+                            <span className="text-xs font-medium text-gray-700">Female Avatar</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="lg:col-span-2">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Full Name *
@@ -623,7 +809,7 @@ export default function StaffManager() {
                       value={formData.position}
                       onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="e.g., Senior Teacher"
+                      placeholder="e.g., Mathematics Teacher"
                     />
                   </div>
 
@@ -639,24 +825,6 @@ export default function StaffManager() {
                     >
                       {departments.map(dept => (
                         <option key={dept} value={dept}>{dept}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Reports To
-                    </label>
-                    <select
-                      value={formData.reportsTo}
-                      onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    >
-                      <option value="">Select Supervisor</option>
-                      {getAvailableSupervisors().map(supervisor => (
-                        <option key={supervisor.id} value={supervisor.name}>
-                          {supervisor.name} ({supervisor.role})
-                        </option>
                       ))}
                     </select>
                   </div>
@@ -689,96 +857,6 @@ export default function StaffManager() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Date of Birth
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.dateOfBirth}
-                      onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Join Date *
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      value={formData.joinDate}
-                      onChange={(e) => setFormData({ ...formData, joinDate: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Experience
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.experience}
-                      onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="e.g., 5 years"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Qualifications
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.qualifications}
-                      onChange={(e) => setFormData({ ...formData, qualifications: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="e.g., M.Ed, B.Ed"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Specialization
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.specialization}
-                      onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="e.g., Mathematics, Physics"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Emergency Contact
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.emergencyContact}
-                      onChange={(e) => setFormData({ ...formData, emergencyContact: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="+254 XXX XXX XXX"
-                    />
-                  </div>
-
-                  <div className="lg:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Address
-                    </label>
-                    <textarea
-                      value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      rows="2"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="Enter full address"
-                    />
-                  </div>
-
                   <div className="lg:col-span-2">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Bio
@@ -792,17 +870,127 @@ export default function StaffManager() {
                     />
                   </div>
 
+                  {/* Responsibilities */}
                   <div className="lg:col-span-2">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Image URL
+                      Responsibilities
                     </label>
-                    <input
-                      type="url"
-                      value={formData.image}
-                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="https://example.com/image.jpg"
-                    />
+                    <div className="space-y-2">
+                      {formData.responsibilities.map((resp, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <span className="flex-1 px-3 py-2 bg-gray-100 rounded-lg text-sm">
+                            {resp}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeArrayItem('responsibilities', index)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <FiX className="text-sm" />
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newResponsibility}
+                          onChange={(e) => setNewResponsibility(e.target.value)}
+                          placeholder="Enter responsibility"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addResponsibility())}
+                        />
+                        <button
+                          type="button"
+                          onClick={addResponsibility}
+                          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors flex items-center gap-1"
+                        >
+                          <FiPlus className="text-sm" />
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expertise */}
+                  <div className="lg:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Expertise
+                    </label>
+                    <div className="space-y-2">
+                      {formData.expertise.map((exp, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <span className="flex-1 px-3 py-2 bg-gray-100 rounded-lg text-sm">
+                            {exp}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeArrayItem('expertise', index)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <FiX className="text-sm" />
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newExpertise}
+                          onChange={(e) => setNewExpertise(e.target.value)}
+                          placeholder="Enter expertise"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addExpertise())}
+                        />
+                        <button
+                          type="button"
+                          onClick={addExpertise}
+                          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors flex items-center gap-1"
+                        >
+                          <FiPlus className="text-sm" />
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Achievements */}
+                  <div className="lg:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Achievements
+                    </label>
+                    <div className="space-y-2">
+                      {formData.achievements.map((achievement, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <span className="flex-1 px-3 py-2 bg-gray-100 rounded-lg text-sm">
+                            {achievement}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeArrayItem('achievements', index)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <FiX className="text-sm" />
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newAchievement}
+                          onChange={(e) => setNewAchievement(e.target.value)}
+                          placeholder="Enter achievement"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAchievement())}
+                        />
+                        <button
+                          type="button"
+                          onClick={addAchievement}
+                          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors flex items-center gap-1"
+                        >
+                          <FiPlus className="text-sm" />
+                          Add
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -828,9 +1016,21 @@ export default function StaffManager() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+                    disabled={saving}
+                    className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {editingStaff ? 'Update Staff Member' : 'Add Staff Member'}
+                    {saving ? (
+                      <>
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                        />
+                        {editingStaff ? 'Updating...' : 'Creating...'}
+                      </>
+                    ) : (
+                      editingStaff ? 'Update Staff Member' : 'Add Staff Member'
+                    )}
                   </button>
                 </div>
               </form>
@@ -872,7 +1072,7 @@ export default function StaffManager() {
                 <div className="flex flex-col lg:flex-row gap-6 mb-6">
                   <div className="flex-shrink-0">
                     <img
-                      src={selectedStaff.image}
+                      src={selectedStaff.image || male}
                       alt={selectedStaff.name}
                       className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl object-cover shadow-lg"
                     />
@@ -886,7 +1086,7 @@ export default function StaffManager() {
                         selectedStaff.status === 'on-leave' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {selectedStaff.status}
+                        {selectedStaff.status || 'active'}
                       </span>
                     </div>
                     <p className="text-gray-600 mb-1">{selectedStaff.position}</p>
@@ -904,45 +1104,51 @@ export default function StaffManager() {
                       <div className="space-y-1 text-sm">
                         <p><span className="font-medium">Email:</span> {selectedStaff.email}</p>
                         <p><span className="font-medium">Phone:</span> {selectedStaff.phone}</p>
-                        <p><span className="font-medium">Emergency:</span> {selectedStaff.emergencyContact}</p>
                       </div>
                     </div>
 
                     <div>
                       <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
                         <IoSchoolOutline className="text-orange-500" />
-                        Qualifications
+                        Professional Details
                       </h4>
                       <div className="space-y-1 text-sm">
-                        <p><span className="font-medium">Experience:</span> {selectedStaff.experience}</p>
-                        <p><span className="font-medium">Qualifications:</span> {selectedStaff.qualifications}</p>
-                        <p><span className="font-medium">Specialization:</span> {selectedStaff.specialization}</p>
+                        <p><span className="font-medium">Position:</span> {selectedStaff.position}</p>
+                        <p><span className="font-medium">Department:</span> {selectedStaff.department}</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <FiCalendar className="text-orange-500" />
-                        Personal Details
-                      </h4>
-                      <div className="space-y-1 text-sm">
-                        <p><span className="font-medium">Date of Birth:</span> {selectedStaff.dateOfBirth}</p>
-                        <p><span className="font-medium">Join Date:</span> {selectedStaff.joinDate}</p>
-                        {selectedStaff.reportsTo && (
-                          <p><span className="font-medium">Reports To:</span> {selectedStaff.reportsTo}</p>
-                        )}
+                    {selectedStaff.expertise && selectedStaff.expertise.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                          <FiStar className="text-orange-500" />
+                          Expertise
+                        </h4>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedStaff.expertise.map((exp, index) => (
+                            <span key={index} className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
+                              {exp}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
-                    <div>
-                      <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <FiMapPin className="text-orange-500" />
-                        Address
-                      </h4>
-                      <p className="text-sm">{selectedStaff.address}</p>
-                    </div>
+                    {selectedStaff.achievements && selectedStaff.achievements.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                          <FiAward className="text-orange-500" />
+                          Achievements
+                        </h4>
+                        <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                          {selectedStaff.achievements.map((achievement, index) => (
+                            <li key={index}>{achievement}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 </div>
 

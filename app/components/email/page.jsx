@@ -10,55 +10,156 @@ import {
   FiUsers,
   FiBarChart2,
   FiEye,
-  FiClock,
-  FiTrendingUp,
   FiMail,
   FiX,
   FiSave,
   FiChevronLeft,
   FiChevronRight,
   FiCalendar,
-  FiUser
+  FiRotateCw,
+  FiCheck
 } from 'react-icons/fi';
 
 export default function EmailManager() {
   const [campaigns, setCampaigns] = useState([]);
   const [filteredCampaigns, setFilteredCampaigns] = useState([]);
-  const [selectedRecipients, setSelectedRecipients] = useState('all');
+  const [students, setStudents] = useState([]);
+  const [staff, setStaff] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const [formData, setFormData] = useState({
+    title: '',
     subject: '',
     content: '',
     recipients: 'all',
-    schedule: 'immediate',
-    scheduledDate: '',
-    scheduledTime: '',
     status: 'draft'
   });
 
+  // Fetch emails from APIs
+  const fetchEmails = async () => {
+    try {
+      // Fetch students
+      const studentRes = await fetch('/api/student');
+      const studentData = await studentRes.json();
+      const students = studentData.success ? studentData.student || [] : [];
+      const parentEmails = students.map(s => s.parentEmail).filter(Boolean);
+
+      // Fetch staff
+      const staffRes = await fetch('/api/staff');
+      const staffData = await staffRes.json();
+      const staff = staffData.success ? staffData.staff || [] : [];
+      const teacherEmails = staff.filter(s => s.role === 'Teacher').map(s => s.email).filter(Boolean);
+      const bomEmails = staff.filter(s => s.role === 'BOM Member').map(s => s.email).filter(Boolean);
+      const allStaffEmails = staff.map(s => s.email).filter(Boolean);
+
+      // Update state
+      setStudents(students);
+      setStaff(staff);
+
+      return {
+        parentEmails,
+        teacherEmails,
+        bomEmails,
+        allStaffEmails
+      };
+    } catch (error) {
+      console.error('Error fetching emails:', error);
+      return {
+        parentEmails: [],
+        teacherEmails: [],
+        bomEmails: [],
+        allStaffEmails: []
+      };
+    }
+  };
+
+  // Fetch data from APIs
   useEffect(() => {
-    const sampleCampaigns = Array.from({ length: 24 }, (_, i) => ({
-      id: i + 1,
-      subject: `Campaign ${i + 1}: ${['Weekly Newsletter', 'Event Invitation', 'Important Announcement', 'Academic Update', 'Sports News'][i % 5]}`,
-      recipients: ['All Subscribers', 'Parents Only', 'Students Only', 'Staff Members', 'Board of Management'][i % 5],
-      sentDate: `2024-03-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
-      openRate: Math.floor(Math.random() * 30) + 60,
-      clickRate: Math.floor(Math.random() * 20) + 15,
-      status: ['sent', 'scheduled', 'draft'][i % 3],
-      sentTo: [2345, 1247, 1247, 68, 12][i % 5],
-      unsubscribes: Math.floor(Math.random() * 10) + 1,
-      replies: Math.floor(Math.random() * 20) + 5,
-      createdAt: `2024-03-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
-      scheduledFor: i % 3 === 1 ? `2024-04-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}` : null
-    }));
-    setCampaigns(sampleCampaigns);
-    setFilteredCampaigns(sampleCampaigns);
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Fetch campaigns
+      const campaignsRes = await fetch('/api/emails');
+      const campaignsData = await campaignsRes.json();
+      if (campaignsData.success) setCampaigns(campaignsData.campaigns || []);
+
+      // Fetch students & staff emails
+      await fetchEmails();
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Calculate recipient groups from API data
+  const recipientGroups = [
+    { 
+      value: 'all', 
+      label: 'All Recipients', 
+      count: calculateTotalRecipients(),
+      color: 'blue'
+    },
+    { 
+      value: 'parents', 
+      label: 'Parents Only', 
+      count: students.filter(s => s.parentEmail).length,
+      color: 'green'
+    },
+    { 
+      value: 'teachers', 
+      label: 'Teaching Staff', 
+      count: staff.filter(s => s.role === 'Teacher').length,
+      color: 'purple'
+    },
+    { 
+      value: 'bom', 
+      label: 'Board of Management', 
+      count: staff.filter(s => s.role === 'BOM Member').length,
+      color: 'red'
+    },
+    { 
+      value: 'staff', 
+      label: 'All Staff', 
+      count: staff.filter(s => s.email).length,
+      color: 'orange'
+    }
+  ];
+
+  function calculateTotalRecipients() {
+    const parentEmails = students.map(s => s.parentEmail).filter(Boolean).length;
+    const staffEmails = staff.map(s => s.email).filter(Boolean).length;
+    return parentEmails + staffEmails;
+  }
+
+  // Get emails for a recipient group
+  const getRecipientEmails = (recipientType) => {
+    switch (recipientType) {
+      case 'parents':
+        return students.map(s => s.parentEmail).filter(Boolean);
+      case 'teachers':
+        return staff.filter(s => s.role === 'Teacher').map(s => s.email).filter(Boolean);
+      case 'bom':
+        return staff.filter(s => s.role === 'BOM Member').map(s => s.email).filter(Boolean);
+      case 'staff':
+        return staff.map(s => s.email).filter(Boolean);
+      case 'all':
+      default:
+        return [
+          ...students.map(s => s.parentEmail).filter(Boolean),
+          ...staff.map(s => s.email).filter(Boolean)
+        ];
+    }
+  };
 
   // Filtering and pagination
   useEffect(() => {
@@ -66,8 +167,8 @@ export default function EmailManager() {
 
     if (searchTerm) {
       filtered = filtered.filter(campaign =>
-        campaign.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        campaign.recipients.toLowerCase().includes(searchTerm.toLowerCase())
+        campaign.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        campaign.title?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -89,12 +190,10 @@ export default function EmailManager() {
   // CRUD Operations
   const handleCreate = () => {
     setFormData({
+      title: '',
       subject: '',
       content: '',
       recipients: 'all',
-      schedule: 'immediate',
-      scheduledDate: '',
-      scheduledTime: '',
       status: 'draft'
     });
     setEditingCampaign(null);
@@ -103,68 +202,143 @@ export default function EmailManager() {
 
   const handleEdit = (campaign) => {
     setFormData({
+      title: campaign.title,
       subject: campaign.subject,
-      content: 'Sample email content...', // In real app, this would be the actual content
-      recipients: campaign.recipients.split(' ')[0].toLowerCase(),
-      schedule: campaign.scheduledFor ? 'scheduled' : 'immediate',
-      scheduledDate: campaign.scheduledFor || '',
-      scheduledTime: '09:00',
+      content: campaign.content,
+      recipients: 'all',
       status: campaign.status
     });
     setEditingCampaign(campaign);
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('Are you sure you want to delete this email campaign?')) {
-      setCampaigns(campaigns.filter(campaign => campaign.id !== id));
+      try {
+        const response = await fetch(`/api/emails?id=${id}`, {
+          method: 'DELETE',
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          setCampaigns(campaigns.filter(campaign => campaign.id !== id));
+          alert('Campaign deleted successfully!');
+        } else {
+          alert(result.error || 'Failed to delete campaign');
+        }
+      } catch (error) {
+        console.error('Error deleting campaign:', error);
+        alert('Error deleting campaign');
+      }
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingCampaign) {
-      // Update campaign
-      setCampaigns(campaigns.map(campaign => 
-        campaign.id === editingCampaign.id 
-          ? { ...campaign, ...formData }
-          : campaign
-      ));
-    } else {
-      // Create new campaign
-      const newCampaign = {
-        id: Date.now(),
+    
+    try {
+      const recipientEmails = getRecipientEmails(formData.recipients);
+      
+      if (recipientEmails.length === 0) {
+        alert('No recipients found for the selected group. Please check your data.');
+        return;
+      }
+
+      const campaignData = {
+        title: formData.title,
         subject: formData.subject,
-        recipients: recipientGroups.find(g => g.value === formData.recipients)?.label || 'All Subscribers',
-        sentDate: formData.schedule === 'immediate' ? new Date().toISOString().split('T')[0] : null,
-        openRate: 0,
-        clickRate: 0,
+        content: formData.content,
+        recipients: recipientEmails.join(', '),
         status: formData.status,
-        sentTo: recipientGroups.find(g => g.value === formData.recipients)?.count || 2345,
-        unsubscribes: 0,
-        replies: 0,
-        createdAt: new Date().toISOString().split('T')[0],
-        scheduledFor: formData.schedule === 'scheduled' ? formData.scheduledDate : null
+        recipientType: formData.recipients
       };
-      setCampaigns([...campaigns, newCampaign]);
+
+      console.log('Creating campaign:', campaignData);
+
+      const response = await fetch('/api/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(campaignData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        await fetchData(); // Refresh campaigns
+        setShowModal(false);
+        alert('Campaign created successfully!');
+      } else {
+        alert(result.error || 'Failed to create campaign');
+      }
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      alert('Error creating campaign');
     }
-    setShowModal(false);
   };
 
-  const recipientGroups = [
-    { value: 'all', label: 'All Subscribers', count: 2345, color: 'blue' },
-    { value: 'parents', label: 'Parents Only', count: 1247, color: 'green' },
-    { value: 'students', label: 'Students Only', count: 1247, color: 'purple' },
-    { value: 'staff', label: 'Staff Members', count: 68, color: 'orange' },
-    { value: 'bom', label: 'Board of Management', count: 12, color: 'red' },
-    { value: 'alumni', label: 'Alumni', count: 456, color: 'indigo' }
-  ];
+  const handleSendNow = async (campaign) => {
+    if (confirm(`Send this campaign to ${campaign.recipients.split(',').length} recipients?`)) {
+      setSending(true);
+      try {
+        // Update campaign status to published to trigger sending
+        const response = await fetch('/api/emails', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...campaign,
+            status: 'published',
+            sentAt: new Date().toISOString()
+          }),
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          await fetchData(); // Refresh to update status
+          alert('Campaign sent successfully!');
+        } else {
+          alert(result.error || 'Failed to send campaign');
+        }
+      } catch (error) {
+        console.error('Error sending campaign:', error);
+        alert('Error sending campaign');
+      } finally {
+        setSending(false);
+      }
+    }
+  };
 
+  // Stats calculation
   const stats = [
-    { label: 'Total Sent', value: '15,234', change: 12, icon: FiSend, color: 'blue' },
-    { label: 'Open Rate', value: '72%', change: 5, icon: FiEye, color: 'green' },
-    { label: 'Click Rate', value: '34%', change: 8, icon: FiTrendingUp, color: 'purple' },
-    { label: 'Bounce Rate', value: '2.1%', change: -1, icon: FiBarChart2, color: 'orange' }
+    { 
+      label: 'Total Campaigns', 
+      value: campaigns.length.toString(), 
+      icon: FiMail, 
+      color: 'blue' 
+    },
+    { 
+      label: 'Sent Campaigns', 
+      value: campaigns.filter(c => c.status === 'published').length.toString(), 
+      icon: FiSend, 
+      color: 'green' 
+    },
+    { 
+      label: 'Draft Campaigns', 
+      value: campaigns.filter(c => c.status === 'draft').length.toString(), 
+      icon: FiSave, 
+      color: 'purple' 
+    },
+    { 
+      label: 'Total Recipients', 
+      value: calculateTotalRecipients().toString(), 
+      icon: FiUsers, 
+      color: 'orange' 
+    }
   ];
 
   const Pagination = () => (
@@ -181,12 +355,7 @@ export default function EmailManager() {
           <FiChevronLeft className="text-lg" />
         </button>
         
-        {Array.from({ length: totalPages }, (_, i) => i + 1)
-          .filter(page => 
-            page === 1 || 
-            page === totalPages || 
-            (page >= currentPage - 1 && page <= currentPage + 1)
-          )
+        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => i + 1)
           .map((page, index, array) => (
             <div key={page} className="flex items-center">
               {index > 0 && array[index - 1] !== page - 1 && (
@@ -196,7 +365,7 @@ export default function EmailManager() {
                 onClick={() => paginate(page)}
                 className={`px-3 py-2 rounded-lg font-semibold transition-colors ${
                   currentPage === page
-                    ? 'bg-pink-600 text-white shadow-lg shadow-pink-500/25'
+                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -217,25 +386,47 @@ export default function EmailManager() {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 flex items-center justify-center">
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-gray-600 text-lg">Loading email campaigns...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 lg:p-6 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 p-4 lg:p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">
-            Email Campaigns
-          </h1>
-          <p className="text-gray-600 mt-2">Create and manage email campaigns for different groups</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-800">Email Campaigns</h1>
+          <p className="text-gray-600 mt-2">Create and manage email campaigns for school communication</p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleCreate}
-          className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white px-4 lg:px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-lg shadow-pink-500/25 w-full lg:w-auto justify-center"
-        >
-          <FiPlus className="text-lg" />
-          New Campaign
-        </motion.button>
+        <div className="flex gap-3">
+          <button 
+            onClick={fetchData}
+            className="px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-lg"
+          >
+            <FiRotateCw className="text-lg" />
+            Refresh
+          </button>
+          <motion.button
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleCreate}
+            className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-lg shadow-blue-500/25"
+          >
+            <FiPlus className="text-lg" />
+            New Campaign
+          </motion.button>
+        </div>
       </div>
 
       {/* Email Stats */}
@@ -243,6 +434,9 @@ export default function EmailManager() {
         {stats.map((stat, index) => (
           <motion.div
             key={index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
             whileHover={{ y: -4 }}
             className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-200/50"
           >
@@ -250,16 +444,6 @@ export default function EmailManager() {
               <div>
                 <p className="text-gray-600 text-sm mb-2">{stat.label}</p>
                 <p className="text-xl lg:text-2xl font-bold text-gray-900">{stat.value}</p>
-                <div className="flex items-center gap-1 mt-2">
-                  {stat.change > 0 ? (
-                    <FiTrendingUp className="text-green-500 text-sm" />
-                  ) : (
-                    <FiTrendingUp className="text-red-500 text-sm" style={{ transform: 'rotate(180deg)' }} />
-                  )}
-                  <span className={`text-sm font-semibold ${stat.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {stat.change > 0 ? '+' : ''}{stat.change}%
-                  </span>
-                </div>
               </div>
               <div className={`p-2 lg:p-3 rounded-xl bg-${stat.color}-100`}>
                 <stat.icon className={`text-lg lg:text-xl text-${stat.color}-600`} />
@@ -270,26 +454,26 @@ export default function EmailManager() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Compose Email */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-200/50">
+        {/* Quick Compose */}
+        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
           <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <FiMail className="text-pink-500" />
-            Compose Email
+            <FiMail className="text-blue-500" />
+            Quick Compose
           </h2>
           
-          <div className="space-y-4 lg:space-y-6">
+          <div className="space-y-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Recipients
               </label>
-              <select
-                value={selectedRecipients}
-                onChange={(e) => setSelectedRecipients(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-colors"
+              <select 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                value={formData.recipients}
+                onChange={(e) => setFormData({ ...formData, recipients: e.target.value })}
               >
                 {recipientGroups.map(group => (
                   <option key={group.value} value={group.value}>
-                    {group.label} ({group.count.toLocaleString()})
+                    {group.label} ({group.count})
                   </option>
                 ))}
               </select>
@@ -302,7 +486,9 @@ export default function EmailManager() {
               <input
                 type="text"
                 placeholder="Enter email subject"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-colors"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                value={formData.subject}
+                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
               />
             </div>
 
@@ -311,18 +497,29 @@ export default function EmailManager() {
                 Email Content
               </label>
               <textarea
-                rows="8"
+                rows="6"
                 placeholder="Write your email content here..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-colors resize-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+                value={formData.content}
+                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
               />
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2">
+              <button 
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                onClick={() => setFormData({ ...formData, status: 'draft' })}
+              >
                 <FiSave className="text-lg" />
                 Save Draft
               </button>
-              <button className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-green-500/25">
+              <button 
+                className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-green-500/25"
+                onClick={() => {
+                  setFormData({ ...formData, status: 'published' });
+                  handleSubmit({ preventDefault: () => {} } );
+                }}
+              >
                 <FiSend className="text-lg" />
                 Send Now
               </button>
@@ -330,10 +527,10 @@ export default function EmailManager() {
           </div>
         </div>
 
-        {/* Campaign Stats & Groups */}
-        <div className="space-y-4 lg:space-y-6">
+        {/* Recipient Groups & Stats */}
+        <div className="space-y-6">
           {/* Recipient Groups */}
-          <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-200/50">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
             <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
               <FiUsers className="text-blue-500" />
               Recipient Groups
@@ -344,10 +541,14 @@ export default function EmailManager() {
                   key={group.value}
                   whileHover={{ x: 4 }}
                   className={`flex items-center justify-between p-3 border border-${group.color}-200 rounded-xl cursor-pointer transition-all duration-200 hover:border-${group.color}-300 hover:bg-${group.color}-50`}
+                  onClick={() => setFormData({ ...formData, recipients: group.value })}
                 >
-                  <span className="font-medium text-gray-700 text-sm">{group.label}</span>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full bg-${group.color}-500`}></div>
+                    <span className="font-medium text-gray-700 text-sm">{group.label}</span>
+                  </div>
                   <span className={`bg-${group.color}-100 text-${group.color}-800 px-2 py-1 rounded-full text-xs font-semibold`}>
-                    {group.count.toLocaleString()}
+                    {group.count}
                   </span>
                 </motion.div>
               ))}
@@ -355,27 +556,35 @@ export default function EmailManager() {
           </div>
 
           {/* Quick Stats */}
-          <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-lg border border-gray-200/50">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
             <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
               <FiBarChart2 className="text-green-500" />
-              Quick Stats
+              Audience Overview
             </h3>
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-600">Total Subscribers</p>
-                <p className="text-xl font-bold text-gray-800">2,345</p>
+                <p className="text-sm text-gray-600">Total Parents</p>
+                <p className="text-xl font-bold text-gray-800">
+                  {students.filter(s => s.parentEmail).length}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Average Open Rate</p>
-                <p className="text-xl font-bold text-gray-800">72%</p>
+                <p className="text-sm text-gray-600">Teaching Staff</p>
+                <p className="text-xl font-bold text-gray-800">
+                  {staff.filter(s => s.role === 'Teacher').length}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Campaigns This Month</p>
-                <p className="text-xl font-bold text-gray-800">8</p>
+                <p className="text-sm text-gray-600">BOM Members</p>
+                <p className="text-xl font-bold text-gray-800">
+                  {staff.filter(s => s.role === 'BOM Member').length}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Scheduled</p>
-                <p className="text-xl font-bold text-gray-800">3</p>
+                <p className="text-sm text-gray-600">Total Audience</p>
+                <p className="text-xl font-bold text-gray-800">
+                  {calculateTotalRecipients()}
+                </p>
               </div>
             </div>
           </div>
@@ -384,7 +593,7 @@ export default function EmailManager() {
 
       {/* Campaigns List */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
-        <div className="p-4 lg:p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1 relative">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -393,25 +602,19 @@ export default function EmailManager() {
                 placeholder="Search campaigns..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-colors"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               />
             </div>
 
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-colors"
+              className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             >
               <option value="all">All Status</option>
-              <option value="sent">Sent</option>
-              <option value="scheduled">Scheduled</option>
               <option value="draft">Draft</option>
+              <option value="published">Sent</option>
             </select>
-
-            <button className="px-4 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 shadow-lg">
-              <FiBarChart2 className="text-lg" />
-              <span className="hidden lg:inline">Reports</span>
-            </button>
           </div>
         </div>
 
@@ -419,12 +622,11 @@ export default function EmailManager() {
           <table className="w-full">
             <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
               <tr>
-                <th className="px-4 lg:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Campaign</th>
-                <th className="px-4 lg:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Recipients</th>
-                <th className="px-4 lg:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-4 lg:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Performance</th>
-                <th className="px-4 lg:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-4 lg:px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Campaign</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Recipients</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -435,75 +637,71 @@ export default function EmailManager() {
                   animate={{ opacity: 1 }}
                   className="hover:bg-gray-50 transition-colors group"
                 >
-                  <td className="px-4 lg:px-6 py-4">
+                  <td className="px-6 py-4">
                     <div>
-                      <p className="font-semibold text-gray-800 group-hover:text-pink-600 transition-colors text-sm lg:text-base">
-                        {campaign.subject}
+                      <p className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
+                        {campaign.title}
                       </p>
-                      <p className="text-xs text-gray-500">Sent to: {campaign.sentTo.toLocaleString()}</p>
+                      <p className="text-sm text-gray-500 mt-1">{campaign.subject}</p>
                     </div>
                   </td>
-                  <td className="px-4 lg:px-6 py-4">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
-                      {campaign.recipients}
-                    </span>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <FiUsers className="text-gray-400" />
+                      <span className="text-sm text-gray-600">
+                        {campaign.recipients?.split(',').length || 0} recipients
+                      </span>
+                    </div>
                   </td>
-                  <td className="px-4 lg:px-6 py-4">
+                  <td className="px-6 py-4">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <FiCalendar className="text-gray-400" />
-                      {campaign.sentDate || campaign.scheduledFor || 'Draft'}
+                      {campaign.sentAt 
+                        ? new Date(campaign.sentAt).toLocaleDateString()
+                        : new Date(campaign.createdAt).toLocaleDateString()
+                      }
                     </div>
                   </td>
-                  <td className="px-4 lg:px-6 py-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-xs">
-                        <span className="text-gray-600">Open:</span>
-                        <span className="font-semibold text-green-600">{campaign.openRate}%</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs">
-                        <span className="text-gray-600">Click:</span>
-                        <span className="font-semibold text-blue-600">{campaign.clickRate}%</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 lg:px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      campaign.status === 'sent' 
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      campaign.status === 'published'
                         ? 'bg-green-100 text-green-800'
-                        : campaign.status === 'scheduled'
-                        ? 'bg-yellow-100 text-yellow-800'
                         : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {campaign.status}
+                      {campaign.status === 'published' ? 'Sent' : 'Draft'}
                     </span>
                   </td>
-                  <td className="px-4 lg:px-6 py-4">
-                    <div className="flex items-center gap-1 lg:gap-2">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      {campaign.status === 'draft' && (
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleSendNow(campaign)}
+                          disabled={sending}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                          title="Send Now"
+                        >
+                          <FiSend className="text-lg" />
+                        </motion.button>
+                      )}
                       <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => handleEdit(campaign)}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="Edit"
                       >
-                        <FiEdit className="text-sm lg:text-base" />
+                        <FiEdit className="text-lg" />
                       </motion.button>
                       <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => handleDelete(campaign.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete"
                       >
-                        <FiTrash2 className="text-sm lg:text-base" />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                        title="View Analytics"
-                      >
-                        <FiBarChart2 className="text-sm lg:text-base" />
+                        <FiTrash2 className="text-lg" />
                       </motion.button>
                     </div>
                   </td>
@@ -514,9 +712,24 @@ export default function EmailManager() {
         </div>
 
         {/* Pagination */}
-        <div className="p-4 lg:p-6 border-t border-gray-200">
-          <Pagination />
-        </div>
+        {filteredCampaigns.length > 0 && (
+          <div className="p-6 border-t border-gray-200">
+            <Pagination />
+          </div>
+        )}
+
+        {filteredCampaigns.length === 0 && (
+          <div className="text-center py-12">
+            <FiMail className="text-gray-300 text-4xl mx-auto mb-4" />
+            <p className="text-gray-500 text-lg">No campaigns found</p>
+            <p className="text-gray-400 text-sm mt-2">
+              {searchTerm || selectedStatus !== 'all' 
+                ? 'Try adjusting your search or filters' 
+                : 'Create your first email campaign to get started'
+              }
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Create/Edit Modal */}
@@ -554,77 +767,49 @@ export default function EmailManager() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="lg:col-span-2">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Subject *
+                      Campaign Title *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter campaign title"
+                    />
+                  </div>
+
+                  <div className="lg:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Email Subject *
                     </label>
                     <input
                       type="text"
                       required
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Enter email subject"
                     />
                   </div>
 
-                  <div>
+                  <div className="lg:col-span-2">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Recipients *
+                      Recipient Group *
                     </label>
                     <select
                       required
                       value={formData.recipients}
                       onChange={(e) => setFormData({ ...formData, recipients: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       {recipientGroups.map(group => (
-                        <option key={group.value} value={group.value}>{group.label}</option>
+                        <option key={group.value} value={group.value}>
+                          {group.label} ({group.count} recipients)
+                        </option>
                       ))}
                     </select>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Schedule *
-                    </label>
-                    <select
-                      required
-                      value={formData.schedule}
-                      onChange={(e) => setFormData({ ...formData, schedule: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                    >
-                      <option value="immediate">Send Immediately</option>
-                      <option value="scheduled">Schedule for Later</option>
-                    </select>
-                  </div>
-
-                  {formData.schedule === 'scheduled' && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Date *
-                        </label>
-                        <input
-                          type="date"
-                          required
-                          value={formData.scheduledDate}
-                          onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Time *
-                        </label>
-                        <input
-                          type="time"
-                          required
-                          value={formData.scheduledTime}
-                          onChange={(e) => setFormData({ ...formData, scheduledTime: e.target.value })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                        />
-                      </div>
-                    </>
-                  )}
                 </div>
 
                 <div>
@@ -636,9 +821,22 @@ export default function EmailManager() {
                     value={formData.content}
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                     rows="8"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                     placeholder="Write your email content here..."
                   />
+                  <p className="text-xs text-gray-500 mt-2">
+                    The content will be wrapped in the school email template automatically.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
+                  <FiCheck className="text-blue-500 text-xl" />
+                  <div>
+                    <p className="text-sm font-semibold text-blue-800">Recipient Preview</p>
+                    <p className="text-xs text-blue-600">
+                      This will be sent to {getRecipientEmails(formData.recipients).length} recipients
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -646,8 +844,8 @@ export default function EmailManager() {
                     <input
                       type="checkbox"
                       checked={formData.status === 'draft'}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.checked ? 'draft' : 'scheduled' })}
-                      className="rounded border-gray-300 text-pink-600 focus:ring-pink-500"
+                      onChange={(e) => setFormData({ ...formData, status: e.target.checked ? 'draft' : 'published' })}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <span className="text-sm font-semibold text-gray-700">Save as Draft</span>
                   </label>
@@ -663,8 +861,9 @@ export default function EmailManager() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
                   >
+                    <FiSave className="text-lg" />
                     {editingCampaign ? 'Update Campaign' : 'Create Campaign'}
                   </button>
                 </div>

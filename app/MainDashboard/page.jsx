@@ -14,7 +14,9 @@ import {
   FiMail,
   FiUserPlus,
   FiImage,
-  FiShield
+  FiShield,
+  FiMessageCircle,
+  FiInfo
 } from 'react-icons/fi';
 import { 
   IoStatsChart,
@@ -37,6 +39,10 @@ import SubscriberManager from '../components/subscriber/page';
 import EmailManager from '../components/email/page';
 import GalleryManager from '../components/gallery/page';
 import AdminsProfileManager from '../components/adminsandprofile/page';
+
+// Import the new components
+import GuidanceCounselingTab from '../components/guidance/page';
+import SchoolInfoTab from '../components/schoolinfo/page';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -92,6 +98,10 @@ export default function AdminDashboard() {
     switch (activeTab) {
       case 'overview':
         return <DashboardOverview stats={stats} />;
+      case 'school-info':
+        return <SchoolInfoTab />;
+      case 'guidance-counseling':
+        return <GuidanceCounselingTab />;
       case 'students':
         return <StudentManager />;
       case 'staff':
@@ -112,6 +122,21 @@ export default function AdminDashboard() {
         return <DashboardOverview stats={stats} />;
     }
   };
+
+  // Navigation items including the new tabs
+  const navigationItems = [
+    { id: 'overview', label: 'Dashboard Overview', icon: FiHome },
+    { id: 'school-info', label: 'School Information', icon: FiInfo },
+    { id: 'guidance-counseling', label: 'Guidance Counseling', icon: FiMessageCircle },
+    { id: 'students', label: 'Student Management', icon: FiUsers },
+    { id: 'staff', label: 'Staff & BOM Management', icon: IoPeopleCircle },
+    { id: 'assignments', label: 'Assignments Manager', icon: FiBook },
+    { id: 'newsevents', label: 'News & Events', icon: IoNewspaper },
+    { id: 'gallery', label: 'Media Gallery', icon: FiImage },
+    { id: 'subscribers', label: 'Subscriber Management', icon: FiUserPlus },
+    { id: 'email', label: 'Email Campaigns', icon: FiMail },
+    { id: 'admins-profile', label: 'Admins & Profile', icon: FiShield },
+  ];
 
   // Modern Loading Component with Material UI
   if (loading) {
@@ -219,6 +244,7 @@ export default function AdminDashboard() {
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         user={user}
+        navigationItems={navigationItems}
       />
 
       {/* Main Content */}
@@ -238,6 +264,8 @@ export default function AdminDashboard() {
                   {(() => {
                     const navItems = {
                       overview: 'Dashboard Overview',
+                      'school-info': 'School Information',
+                      'guidance-counseling': 'Guidance Counseling',
                       students: 'Student Management',
                       staff: 'Staff & BOM Management',
                       assignments: 'Assignments Manager',

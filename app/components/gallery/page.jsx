@@ -8,13 +8,32 @@ import {
   FiTag, FiFolder, FiInfo
 } from 'react-icons/fi';
 
+// Categories and Departments from your schema
+const CATEGORIES = [
+  { value: 'SPORTS', label: 'Sports', color: 'green' },
+  { value: 'ADMINISTRATION', label: 'Administration', color: 'blue' },
+  { value: 'STUDENT_COUNCIL', label: 'Student Council', color: 'purple' },
+  { value: 'DRAMA', label: 'Drama', color: 'yellow' },
+  { value: 'MUSIC', label: 'Music', color: 'pink' },
+  { value: 'ART', label: 'Art', color: 'orange' },
+  { value: 'OTHER', label: 'Other', color: 'gray' }
+];
+
+const DEPARTMENTS = [
+  { value: 'SCIENCES', label: 'Sciences', color: 'blue' },
+  { value: 'EXAMS', label: 'Exams', color: 'red' },
+  { value: 'HUMANITIES', label: 'Humanities', color: 'green' },
+  { value: 'ARTS', label: 'Arts', color: 'purple' },
+  { value: 'OTHER', label: 'Other', color: 'gray' }
+];
+
 export default function GalleryManager() {
   // State
   const [galleryItems, setGalleryItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedAlbum, setSelectedAlbum] = useState('all');
+  const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,71 +44,89 @@ export default function GalleryManager() {
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [imageErrors, setImageErrors] = useState(new Set());
+  const [loading, setLoading] = useState(true);
 
   const fileInputRef = useRef(null);
   const itemsPerPage = 12;
 
-  // Form Data
+  // Form Data - Updated to match your schema
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'events',
-    album: '',
-    files: [],
-    tags: [],
-    featured: false
+    category: 'SPORTS',
+    department: 'SCIENCES',
+    files: []
   });
 
-  // Initialize sample data
-  useEffect(() => {
-    const sampleItems = Array.from({ length: 24 }, (_, i) => ({
-      id: i + 1,
-      title: `Gallery Item ${i + 1}`,
-      description: 'Beautiful school moment captured in high resolution',
-      category: ['events', 'sports', 'academic', 'students'][i % 4],
-      album: ['School Events', 'Sports Day', 'Academic Achievements', 'Campus Life'][i % 4],
-      type: Math.random() > 0.8 ? 'video' : 'image',
-      fileUrl: `https://images.unsplash.com/photo-15${i % 9}${i % 10}?w=600&h=400&fit=crop`,
-      thumbnailUrl: `https://images.unsplash.com/photo-15${i % 9}${i % 10}?w=200&h=150&fit=crop`,
-      fileName: `media-${i + 1}.${Math.random() > 0.8 ? 'mp4' : 'jpg'}`,
-      fileSize: `${(Math.random() * 4 + 1).toFixed(1)} MB`,
-      fileType: Math.random() > 0.8 ? 'video/mp4' : 'image/jpeg',
-      featured: i % 6 === 0,
-      uploadDate: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-      views: Math.floor(Math.random() * 1000),
-      likes: Math.floor(Math.random() * 50),
-      tags: ['school', 'education', 'students'].slice(0, Math.floor(Math.random() * 3) + 1)
-    }));
-    setGalleryItems(sampleItems);
-    setFilteredItems(sampleItems);
-  }, []);
+  // Fetch gallery items from API
+  const fetchGalleryItems = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/gallery');
+      const result = await response.json();
+      
+      if (result.success && result.galleries) {
+        // Transform API data to match frontend structure
+        const transformedItems = result.galleries.map(item => ({
+          id: item.id,
+          title: item.title,
+          description: item.description || '',
+          category: item.category,
+          department: item.department,
+          files: item.files || [],
+          type: determineMediaType(item.files?.[0]),
+          fileUrl: item.files?.[0] || '',
+          thumbnailUrl: item.files?.[0] || '',
+          fileName: item.files?.[0]?.split('/').pop() || 'file',
+          fileSize: 'Unknown', // You might want to calculate this
+          featured: false, // Add if you want featured functionality
+          uploadDate: item.createdAt,
+          views: 0,
+          likes: 0,
+          tags: [] // Add if you want tags functionality
+        }));
+        
+        setGalleryItems(transformedItems);
+        setFilteredItems(transformedItems);
+      }
+    } catch (error) {
+      console.error('Error fetching gallery items:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Extract unique albums and categories
-  const albums = ['all', ...new Set(galleryItems.map(item => item.album).filter(Boolean))];
-  const categories = [
-    { value: 'all', label: 'All Categories', color: 'gray' },
-    { value: 'events', label: 'Events', color: 'blue' },
-    { value: 'sports', label: 'Sports', color: 'green' },
-    { value: 'academic', label: 'Academic', color: 'purple' },
-    { value: 'students', label: 'Students', color: 'pink' }
-  ];
+  // Determine media type from file extension
+  const determineMediaType = (filePath) => {
+    if (!filePath) return 'image';
+    const extension = filePath.split('.').pop()?.toLowerCase();
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
+    const videoExtensions = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm'];
+    
+    if (imageExtensions.includes(extension)) return 'image';
+    if (videoExtensions.includes(extension)) return 'video';
+    return 'image'; // Default to image
+  };
+
+  useEffect(() => {
+    fetchGalleryItems();
+  }, []);
 
   // Filter items with useCallback for performance
   const filterItems = useCallback(() => {
     let filtered = galleryItems.filter(item => {
       const matchesSearch = searchTerm === '' || 
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+        item.description.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-      const matchesAlbum = selectedAlbum === 'all' || item.album === selectedAlbum;
+      const matchesDepartment = selectedDepartment === 'all' || item.department === selectedDepartment;
       
-      return matchesSearch && matchesCategory && matchesAlbum;
+      return matchesSearch && matchesCategory && matchesDepartment;
     });
 
     return filtered;
-  }, [galleryItems, searchTerm, selectedCategory, selectedAlbum]);
+  }, [galleryItems, searchTerm, selectedCategory, selectedDepartment]);
 
   useEffect(() => {
     setFilteredItems(filterItems());
@@ -152,7 +189,7 @@ export default function GalleryManager() {
     });
   };
 
-  // Enhanced CRUD Operations
+  // Enhanced CRUD Operations - Updated for your API
   const handleCreate = async () => {
     if (!formData.title.trim() || formData.files.length === 0) {
       alert('Please provide a title and select at least one file');
@@ -160,51 +197,41 @@ export default function GalleryManager() {
     }
 
     setIsUploading(true);
-    const newItems = [];
+    
+    try {
+      const submitData = new FormData();
+      submitData.append('title', formData.title);
+      submitData.append('description', formData.description);
+      submitData.append('category', formData.category);
+      submitData.append('department', formData.department);
+      
+      // Append all files
+      formData.files.forEach(file => {
+        submitData.append('files', file);
+      });
 
-    for (const file of formData.files) {
-      try {
-        // Simulate upload progress with better UX
-        for (let progress = 0; progress <= 100; progress += 10) {
-          await new Promise(resolve => setTimeout(resolve, 50 + Math.random() * 100));
-          setUploadProgress(prev => ({ ...prev, [file.name]: progress }));
-        }
+      const response = await fetch('/api/gallery', {
+        method: 'POST',
+        body: submitData,
+      });
 
-        const newItem = {
-          id: Date.now() + Math.random(),
-          title: formData.files.length > 1 ? `${formData.title} - ${file.name}` : formData.title,
-          description: formData.description,
-          category: formData.category,
-          album: formData.album || 'General',
-          type: file.type.startsWith('image/') ? 'image' : 'video',
-          fileUrl: URL.createObjectURL(file),
-          thumbnailUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : '/video-thumbnail.jpg',
-          fileName: file.name,
-          fileSize: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-          fileType: file.type,
-          featured: formData.featured,
-          uploadDate: new Date().toISOString(),
-          views: 0,
-          likes: 0,
-          tags: formData.tags,
-          dimensions: file.type.startsWith('image/') ? '1920x1080' : '1280x720'
-        };
-
-        newItems.push(newItem);
-      } catch (error) {
-        console.error('Error uploading file:', file.name, error);
-        alert(`Failed to upload ${file.name}. Please try again.`);
+      const result = await response.json();
+      
+      if (result.success) {
+        showSnackbar('Gallery item created successfully!', 'success');
+        setShowModal(false);
+        resetForm();
+        fetchGalleryItems(); // Refresh the list
+      } else {
+        showSnackbar(result.error || 'Failed to create gallery item', 'error');
       }
+    } catch (error) {
+      console.error('Error creating gallery item:', error);
+      showSnackbar('Network error: Could not create gallery item', 'error');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress({});
     }
-
-    if (newItems.length > 0) {
-      setGalleryItems(prev => [...newItems, ...prev]);
-    }
-
-    setIsUploading(false);
-    setUploadProgress({});
-    setShowModal(false);
-    resetForm();
   };
 
   const handleEdit = (item) => {
@@ -213,41 +240,46 @@ export default function GalleryManager() {
       title: item.title,
       description: item.description,
       category: item.category,
-      album: item.album,
-      files: [],
-      tags: item.tags || [],
-      featured: item.featured
+      department: item.department,
+      files: []
     });
     setShowModal(true);
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     if (!formData.title.trim()) {
       alert('Please provide a title');
       return;
     }
 
-    setGalleryItems(prev => prev.map(item => 
-      item.id === editingItem.id ? { ...item, ...formData } : item
-    ));
+    // Note: You'll need to implement PUT endpoint for updates
+    // For now, we'll show a message
+    showSnackbar('Update functionality to be implemented', 'info');
     setShowModal(false);
     setEditingItem(null);
     resetForm();
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
-      setGalleryItems(prev => prev.filter(item => item.id !== id));
-      setSelectedItems(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(id);
-        return newSet;
-      });
-      setImageErrors(prev => {
-        const newErrors = new Set(prev);
-        newErrors.delete(id);
-        return newErrors;
-      });
+      try {
+        // Note: You'll need to implement DELETE endpoint
+        // For now, we'll update locally
+        setGalleryItems(prev => prev.filter(item => item.id !== id));
+        setSelectedItems(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(id);
+          return newSet;
+        });
+        setImageErrors(prev => {
+          const newErrors = new Set(prev);
+          newErrors.delete(id);
+          return newErrors;
+        });
+        showSnackbar('Gallery item deleted successfully!', 'success');
+      } catch (error) {
+        showSnackbar('Error deleting gallery item', 'error');
+      }
     }
   };
 
@@ -257,6 +289,7 @@ export default function GalleryManager() {
     if (confirm(`Are you sure you want to delete ${selectedItems.size} selected items? This action cannot be undone.`)) {
       setGalleryItems(prev => prev.filter(item => !selectedItems.has(item.id)));
       setSelectedItems(new Set());
+      showSnackbar(`${selectedItems.size} items deleted successfully!`, 'success');
     }
   };
 
@@ -264,11 +297,9 @@ export default function GalleryManager() {
     setFormData({
       title: '',
       description: '',
-      category: 'events',
-      album: '',
-      files: [],
-      tags: [],
-      featured: false
+      category: 'SPORTS',
+      department: 'SCIENCES',
+      files: []
     });
     setUploadProgress({});
   };
@@ -302,12 +333,33 @@ export default function GalleryManager() {
     total: galleryItems.length,
     images: galleryItems.filter(item => item.type === 'image').length,
     videos: galleryItems.filter(item => item.type === 'video').length,
-    featured: galleryItems.filter(item => item.featured).length,
-    totalSize: galleryItems.reduce((acc, item) => {
-      const size = parseFloat(item.fileSize);
-      return acc + (isNaN(size) ? 0 : size);
-    }, 0).toFixed(1)
+    totalSize: 'Unknown' // You might want to calculate this
   };
+
+  // Snackbar function
+  const showSnackbar = (message, type = 'info') => {
+    // You can implement a proper snackbar component here
+    console.log(`${type.toUpperCase()}: ${message}`);
+    // For now, using alert
+    if (type === 'error') {
+      alert(`Error: ${message}`);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 flex items-center justify-center">
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-gray-600 text-lg">Loading gallery...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 p-4 lg:p-6 space-y-6">
@@ -315,7 +367,7 @@ export default function GalleryManager() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Media Gallery</h1>
-          <p className="text-gray-600">Upload and manage images and videos from your computer</p>
+          <p className="text-gray-600">Upload and manage images and videos from school events</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -334,7 +386,7 @@ export default function GalleryManager() {
           { label: 'Total Items', value: stats.total, icon: FiImage, color: 'blue' },
           { label: 'Images', value: stats.images, icon: FiImage, color: 'green' },
           { label: 'Videos', value: stats.videos, icon: FiVideo, color: 'red' },
-          { label: 'Featured', value: stats.featured, icon: FiStar, color: 'yellow' },
+          { label: 'Categories', value: CATEGORIES.length, icon: FiTag, color: 'purple' },
         ].map((stat, index) => (
           <motion.div
             key={stat.label}
@@ -363,7 +415,7 @@ export default function GalleryManager() {
             <FiSearch className="absolute left-3 top-3 text-gray-400 text-lg" />
             <input
               type="text"
-              placeholder="Search media..."
+              placeholder="Search gallery..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -375,19 +427,20 @@ export default function GalleryManager() {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            {categories.map(cat => (
+            <option value="all">All Categories</option>
+            {CATEGORIES.map(cat => (
               <option key={cat.value} value={cat.value}>{cat.label}</option>
             ))}
           </select>
 
           <select
-            value={selectedAlbum}
-            onChange={(e) => setSelectedAlbum(e.target.value)}
+            value={selectedDepartment}
+            onChange={(e) => setSelectedDepartment(e.target.value)}
             className="border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="all">All Albums</option>
-            {albums.filter(album => album !== 'all').map(album => (
-              <option key={album} value={album}>{album}</option>
+            <option value="all">All Departments</option>
+            {DEPARTMENTS.map(dept => (
+              <option key={dept.value} value={dept.value}>{dept.label}</option>
             ))}
           </select>
 
@@ -471,7 +524,7 @@ export default function GalleryManager() {
           <div className="text-gray-400 text-6xl mb-4">📷</div>
           <h3 className="text-gray-800 text-xl font-semibold mb-2">No media found</h3>
           <p className="text-gray-600 mb-6">
-            {searchTerm || selectedCategory !== 'all' || selectedAlbum !== 'all' 
+            {searchTerm || selectedCategory !== 'all' || selectedDepartment !== 'all' 
               ? 'Try adjusting your search or filters' 
               : 'Get started by uploading your first media file'
             }
@@ -480,7 +533,7 @@ export default function GalleryManager() {
             onClick={() => {
               setSearchTerm('');
               setSelectedCategory('all');
-              setSelectedAlbum('all');
+              setSelectedDepartment('all');
               setShowModal(true);
             }}
             className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all"
@@ -563,8 +616,8 @@ export default function GalleryManager() {
             uploadProgress={uploadProgress}
             isUploading={isUploading}
             dragActive={dragActive}
-            categories={categories.filter(cat => cat.value !== 'all')}
-            albums={albums.filter(album => album !== 'all')}
+            categories={CATEGORIES}
+            departments={DEPARTMENTS}
             onClose={() => {
               setShowModal(false);
               setEditingItem(null);
@@ -587,7 +640,6 @@ export default function GalleryManager() {
             item={selectedMedia}
             onClose={() => setSelectedMedia(null)}
             onDownload={() => {
-              // Implement download functionality
               const link = document.createElement('a');
               link.href = selectedMedia.fileUrl;
               link.download = selectedMedia.fileName;
@@ -600,7 +652,7 @@ export default function GalleryManager() {
   );
 }
 
-// Enhanced Gallery Item Component
+// Gallery Item Component (keep the same as before, but updated to use department instead of album)
 const GalleryItem = ({ 
   item, viewMode, isSelected, hasError, onSelect, onEdit, onDelete, onView, onImageError 
 }) => {
@@ -634,7 +686,7 @@ const GalleryItem = ({
             </div>
           ) : item.type === 'image' ? (
             <img
-              src={item.thumbnailUrl || item.fileUrl}
+              src={item.fileUrl}
               alt={item.title}
               className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
               onError={onImageError}
@@ -652,15 +704,12 @@ const GalleryItem = ({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-semibold text-gray-800 truncate">{item.title}</h3>
-            {item.featured && (
-              <FiStar className="text-yellow-500 flex-shrink-0" />
-            )}
           </div>
           <p className="text-gray-600 text-sm mb-1 truncate">{item.description}</p>
           <div className="flex items-center gap-3 text-xs text-gray-500">
-            <span className="capitalize">{item.category}</span>
+            <span className="capitalize">{item.category.toLowerCase().replace('_', ' ')}</span>
             <span>•</span>
-            <span>{item.fileSize}</span>
+            <span className="capitalize">{item.department.toLowerCase()}</span>
             <span>•</span>
             <span>{new Date(item.uploadDate).toLocaleDateString()}</span>
           </div>
@@ -722,16 +771,8 @@ const GalleryItem = ({
           <FiCheck className="text-xs" />
         </button>
 
-        {/* Featured Badge */}
-        {item.featured && (
-          <div className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-semibold backdrop-blur-sm shadow-lg z-20">
-            <FiStar className="inline mr-1 text-xs" />
-            Featured
-          </div>
-        )}
-
         {/* Type Badge */}
-        <div className="absolute bottom-2 left-2 z-20">
+        <div className="absolute top-2 right-2 z-20">
           <span className={`px-2 py-1 rounded-full text-xs font-semibold text-white backdrop-blur-sm ${
             item.type === 'image' ? 'bg-blue-500' : 'bg-red-500'
           }`}>
@@ -750,7 +791,7 @@ const GalleryItem = ({
             </div>
           ) : item.type === 'image' ? (
             <img
-              src={item.thumbnailUrl || item.fileUrl}
+              src={item.fileUrl}
               alt={item.title}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               onError={onImageError}
@@ -802,44 +843,25 @@ const GalleryItem = ({
           {item.title}
         </h3>
         <div className="flex justify-between text-xs text-gray-500 mb-2">
-          <span className="capitalize">{item.category}</span>
+          <span className="capitalize">{item.category.toLowerCase().replace('_', ' ')}</span>
           <span>{item.fileSize}</span>
         </div>
-        {item.album && (
-          <div className="flex items-center gap-1 text-xs text-gray-500">
-            <FiFolder className="text-xs" />
-            <span className="truncate" title={item.album}>{item.album}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-1 text-xs text-gray-500">
+          <FiFolder className="text-xs" />
+          <span className="truncate" title={item.department}>
+            {item.department.toLowerCase()}
+          </span>
+        </div>
       </div>
     </motion.div>
   );
 };
 
-// Enhanced Upload Modal Component
+// Upload Modal Component (updated for your schema)
 const UploadModal = ({
   formData, setFormData, editingItem, uploadProgress, isUploading, dragActive,
-  categories, albums, onClose, onSubmit, onFileSelect, onDrag, onDrop, removeFile, fileInputRef
+  categories, departments, onClose, onSubmit, onFileSelect, onDrag, onDrop, removeFile, fileInputRef
 }) => {
-  const [newTag, setNewTag] = useState('');
-
-  const addTag = () => {
-    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()]
-      }));
-      setNewTag('');
-    }
-  };
-
-  const removeTag = (tagToRemove) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -858,7 +880,7 @@ const UploadModal = ({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">
-            {editingItem ? 'Edit Media' : 'Upload Media'}
+            {editingItem ? 'Edit Gallery Item' : 'Upload to Gallery'}
           </h2>
           <button
             onClick={onClose}
@@ -974,7 +996,7 @@ const UploadModal = ({
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter media title"
+                  placeholder="Enter gallery title"
                   disabled={isUploading}
                 />
               </div>
@@ -997,17 +1019,16 @@ const UploadModal = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Album
+                  Department
                 </label>
                 <select
-                  value={formData.album}
-                  onChange={(e) => setFormData({ ...formData, album: e.target.value })}
+                  value={formData.department}
+                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                   className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={isUploading}
                 >
-                  <option value="">Select Album</option>
-                  {albums.map(album => (
-                    <option key={album} value={album}>{album}</option>
+                  {departments.map(dept => (
+                    <option key={dept.value} value={dept.value}>{dept.label}</option>
                   ))}
                 </select>
               </div>
@@ -1021,70 +1042,11 @@ const UploadModal = ({
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
                   className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter media description"
+                  placeholder="Enter gallery description"
                   disabled={isUploading}
                 />
               </div>
             </div>
-
-            {/* Tags Section */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tags
-              </label>
-              <div className="flex flex-wrap gap-2 mb-3">
-                {formData.tags.map((tag, index) => (
-                  <span 
-                    key={index} 
-                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tag)}
-                      className="hover:text-blue-900 transition-colors"
-                      disabled={isUploading}
-                    >
-                      <FiX className="text-xs" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                  className="flex-1 border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Add a tag"
-                  disabled={isUploading}
-                />
-                <button
-                  type="button"
-                  onClick={addTag}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors disabled:opacity-50"
-                  disabled={isUploading || !newTag.trim()}
-                >
-                  <FiPlus className="text-lg" />
-                </button>
-              </div>
-            </div>
-
-            {/* Featured Toggle */}
-            <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border">
-              <input
-                type="checkbox"
-                checked={formData.featured}
-                onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                disabled={isUploading}
-              />
-              <div>
-                <span className="text-sm font-medium text-gray-700">Featured Media</span>
-                <p className="text-xs text-gray-500">Show this media prominently in the gallery</p>
-              </div>
-            </label>
           </div>
         </div>
 
@@ -1112,7 +1074,7 @@ const UploadModal = ({
             ) : editingItem ? (
               <>
                 <FiCheck />
-                Update Media
+                Update Gallery
               </>
             ) : (
               <>
@@ -1127,7 +1089,7 @@ const UploadModal = ({
   );
 };
 
-// Enhanced Preview Modal Component
+// Preview Modal Component (keep the same as before)
 const PreviewModal = ({ item, onClose, onDownload }) => (
   <motion.div
     initial={{ opacity: 0 }}
@@ -1193,14 +1155,12 @@ const PreviewModal = ({ item, onClose, onDownload }) => (
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Category:</span>
-                  <span className="font-medium capitalize">{item.category}</span>
+                  <span className="font-medium capitalize">{item.category.toLowerCase().replace('_', ' ')}</span>
                 </div>
-                {item.album && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Album:</span>
-                    <span className="font-medium">{item.album}</span>
-                  </div>
-                )}
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Department:</span>
+                  <span className="font-medium capitalize">{item.department.toLowerCase()}</span>
+                </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Uploaded:</span>
                   <span className="font-medium">{new Date(item.uploadDate).toLocaleDateString()}</span>
@@ -1209,12 +1169,6 @@ const PreviewModal = ({ item, onClose, onDownload }) => (
                   <span className="text-gray-600">Views:</span>
                   <span className="font-medium">{item.views}</span>
                 </div>
-                {item.dimensions && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Dimensions:</span>
-                    <span className="font-medium">{item.dimensions}</span>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -1223,23 +1177,6 @@ const PreviewModal = ({ item, onClose, onDownload }) => (
               <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                 <h4 className="font-semibold text-gray-800 mb-2">Description</h4>
                 <p className="text-gray-600 text-sm">{item.description}</p>
-              </div>
-            )}
-
-            {/* Tags */}
-            {item.tags && item.tags.length > 0 && (
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                <h4 className="font-semibold text-gray-800 mb-2">Tags</h4>
-                <div className="flex flex-wrap gap-2">
-                  {item.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
               </div>
             )}
 

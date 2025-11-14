@@ -1,5 +1,5 @@
 ### 🔹 GET School Info
-GET http://0.0.0.0:3001/api/school
+GET http://0.0.0.0:3001/api/gallery
 Content-Type: application/json
 
 ###
@@ -303,3 +303,413 @@ Content-Disposition: form-data; name="departments"
 
 {"stem": ["Math", "Science"]}
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+
+
+
+### GET all galleries
+GET http://0.0.0.0:3001/api/gallery
+Accept: application/json
+
+###
+###
+# GET all gallery items
+GET http://0.0.0.0:3001/api/gallery
+Accept: application/json
+
+###
+
+
+###
+# GET all email campaigns
+GET http://0.0.0.0:3001/api/student
+
+Accept: application/json
+
+
+
+###
+# GET all students
+GET http://localhost:3000/api/students
+Accept: application/json
+
+###
+
+# POST new student
+POST http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "admissionNumber": "YTR/2025/0012",
+  "name": "John Aaron",
+  "form": "Form 2",
+  "stream": "North",
+  "gender": "Male",
+  "dateOfBirth": "2009-05-14",
+  "enrollmentDate": "2021-01-04",
+  "kcpeMarks": 372,
+  "previousSchool": "Sunrise Primary School",
+  "parentName": "Peter Mwangi",
+  "parentEmail": "emmanuelmakau53@gmail.com",
+  "parentPhone": "+254712345678",
+  "emergencyContact": "+254798556677",
+  "address": "Makueni County, Kenya",
+  "medicalInfo": "Asthmatic, uses inhaler occasionally.",
+  "hobbies": "Football, Reading, Music",
+  "academicPerformance": "Above average in Mathematics and Sciences.",
+  "attendance": "Good attendance record, rarely misses classes.",
+  "disciplineRecord": "No major disciplinary cases recorded.",
+  "status": "Active"
+}
+
+###
+
+# CREATE a new email campaign (draft)
+POST http://0.0.0.0:3001/api/emails
+Content-Type: application/json
+
+{
+  "title": "Parent Meeting Notification",
+  "subject": "Upcoming Parents' Meeting",
+  "content": "Dear parents, this is a reminder for the upcoming parents' meeting next week.",
+  "recipients": "emmanuelmakau53@gmail.com, student1@example.com",
+  "status": "draft"
+}
+
+###
+
+# CREATE and SEND campaign immediately (status = published)
+POST http://localhost:3000/api/email
+Content-Type: application/json
+
+{
+  "title": "School Closing Ceremony",
+  "subject": "Official Closing Ceremony Announcement",
+  "content": "We are pleased to inform you that the school closing ceremony will be held this Friday at 10:00 AM.",
+  "recipients": "emmanuelmakau53@gmail.com",
+  "status": "published"
+}
+
+
+
+
+
+
+# POST new gallery item (multipart/form-data)
+POST http://0.0.0.0:3001/api/gallery
+Content-Type: multipart/form-data; boundary=----MyBoundary123
+
+------MyBoundary123
+Content-Disposition: form-data; name="title"
+
+Inter-School Sports Day
+------MyBoundary123
+Content-Disposition: form-data; name="description"
+
+A collection of images from the sports event.
+------MyBoundary123
+Content-Disposition: form-data; name="category"
+
+SPORTS
+------MyBoundary123
+Content-Disposition: form-data; name="department"
+
+SCIENCES
+------MyBoundary123
+Content-Disposition: form-data; name="files"; filename="image1.jpg"
+Content-Type: image/jpeg
+
+< ./samples/image1.jpg
+------MyBoundary123
+Content-Disposition: form-data; name="files"; filename="image2.png"
+Content-Type: image/png
+
+< ./samples/image2.png
+------MyBoundary123--
+
+
+
+
+
+
+### ----------------------------------------------------
+### ✔ SUPER-DETAILED ASSIGNMENT WITH MANY FIELDS + FILES
+### ----------------------------------------------------
+POST http://0.0.0.0:3001/api/assignment
+Content-Type: multipart/form-data; boundary=----DeepBoundary999
+
+------DeepBoundary999
+Content-Disposition: form-data; name="title"
+
+Comprehensive Science Research Project – Term 1
+------DeepBoundary999
+Content-Disposition: form-data; name="subject"
+
+Science
+------DeepBoundary999
+Content-Disposition: form-data; name="className"
+
+Form 2 West
+------DeepBoundary999
+Content-Disposition: form-data; name="teacher"
+
+Mr. Anthony Wafula
+------DeepBoundary999
+Content-Disposition: form-data; name="dueDate"
+
+2025-02-15
+------DeepBoundary999
+Content-Disposition: form-data; name="dateAssigned"
+
+2025-01-10
+------DeepBoundary999
+Content-Disposition: form-data; name="status"
+
+assigned
+------DeepBoundary999
+Content-Disposition: form-data; name="priority"
+
+high
+------DeepBoundary999
+Content-Disposition: form-data; name="estimatedTime"
+
+6 hours
+------DeepBoundary999
+Content-Disposition: form-data; name="additionalWork"
+
+Read Chapter 4–8 of the science textbook and summarize key concepts.
+------DeepBoundary999
+Content-Disposition: form-data; name="teacherRemarks"
+
+Submit in PDF format only. Late work will receive penalties.
+------DeepBoundary999
+Content-Disposition: form-data; name="description"
+
+This is a detailed research project requiring students to explore environmental conservation, 
+climate change, renewable energy sources, water purification methods, and impacts of pollution 
+on biodiversity. Students must demonstrate critical thinking, proper sources, and strong 
+scientific writing skills. Provide REAL DATA collected from your environment, including 
+observations, photos, recorded temperatures, rainfall trends, or interviews with community members.
+------DeepBoundary999
+Content-Disposition: form-data; name="instructions"
+
+1. Form a group of 3–4 students.  
+2. Select one major environmental problem in your community.  
+3. Conduct field research and gather measurable data.  
+4. Compare community findings with national or global scientific data.  
+5. Write a 10–15 page research report including:  
+   - Introduction  
+   - Background  
+   - Data collection method  
+   - Tables or graphs  
+   - Analysis and interpretation  
+   - Conclusion and recommendations  
+6. Attach photos, interview audio transcripts, and any related documents.  
+------DeepBoundary999
+Content-Disposition: form-data; name="learningObjectives"
+
+[
+  "Understand environmental conservation practices",
+  "Analyze climate change effects on local communities",
+  "Collect field data and interpret scientific results",
+  "Practice teamwork and collaborative research",
+  "Demonstrate scientific writing and documentation",
+  "Use charts and graphs to illustrate findings",
+  "Develop problem-solving and critical thinking skills",
+  "Investigate community-based environmental solutions"
+]
+------DeepBoundary999
+Content-Disposition: form-data; name="assignmentFiles"; filename="research_guidelines.pdf"
+Content-Type: application/pdf
+
+< ./sample_files/research_guidelines.pdf
+------DeepBoundary999
+Content-Disposition: form-data; name="assignmentFiles"; filename="field_template.docx"
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+< ./sample_files/field_template.docx
+------DeepBoundary999
+Content-Disposition: form-data; name="attachments"; filename="community_photo1.jpg"
+Content-Type: image/jpeg
+
+< ./sample_files/community_photo1.jpg
+------DeepBoundary999
+Content-Disposition: form-data; name="attachments"; filename="community_photo2.jpg"
+Content-Type: image/jpeg
+
+< ./sample_files/community_photo2.jpg
+------DeepBoundary999--
+
+
+
+###
+# GET all staff
+GET http://0.0.0.0:3001/api/staff
+Accept: application/json
+
+###
+### ----------------------------------------
+### ✔ TEST CREATE ASSIGNMENT (WITH FILES)
+### ----------------------------------------
+POST http://0.0.0.0:3001/api/assignment
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Math Homework 1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="subject"
+
+Mathematics
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="className"
+
+Grade 4 North
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="teacher"
+
+Mr. John Doe
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="dueDate"
+
+2025-01-01
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Solve all questions attached below
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="instructions"
+
+Show working steps clearly
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="priority"
+
+high
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="estimatedTime"
+
+45 minutes
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="learningObjectives"
+
+["Addition", "Subtraction", "Word Problems"]
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="assignmentFiles"; filename="work1.pdf"
+Content-Type: application/pdf
+
+< ./sample_files/work1.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="attachments"; filename="notes.png"
+Content-Type: image/png
+
+< ./sample_files/notes.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### ----------------------------------------
+### ✔ TEST CREATE ASSIGNMENT (WITHOUT FILES)
+### ----------------------------------------
+GET  http://0.0.0.0:3001/api/assignment
+
+
+
+
+
+Content-Type: multipart/form-data; boundary=----TestBoundary123
+
+------TestBoundary123
+Content-Disposition: form-data; name="title"
+
+English Essay
+------TestBoundary123
+Content-Disposition: form-data; name="subject"
+
+English
+------TestBoundary123
+Content-Disposition: form-data; name="className"
+
+Grade 6 East
+------TestBoundary123
+Content-Disposition: form-data; name="teacher"
+
+Mrs. Ann Marie
+------TestBoundary123
+Content-Disposition: form-data; name="dueDate"
+
+2025-02-01
+------TestBoundary123
+Content-Disposition: form-data; name="description"
+
+Write an essay about your holiday
+------TestBoundary123
+Content-Disposition: form-data; name="priority"
+
+medium
+------TestBoundary123--
+
+### ----------------------------------------
+### ✔ GET ALL ASSIGNMENTS
+### ----------------------------------------
+GET http://localhost:3000/api/assignment
+
+### ----------------------------------------
+### ✔ GET WITH FILTERS
+### ----------------------------------------
+GET http://localhost:3000/api/assignment?class=Grade%204%20North&subject=Mathematics&teacher=Mr.%20John%20Doe&status=assigned&page=1&limit=10
+
+### ----------------------------------------
+### ✔ SEARCH ASSIGNMENTS
+### ----------------------------------------
+GET http://localhost:3000/api/assignment?search=essay
+
+
+# POST new staff (with image)
+POST http://0.0.0.0:3001/api/staff
+Content-Type: multipart/form-data; boundary=----StaffBoundaryX
+
+------StaffBoundaryX
+Content-Disposition: form-data; name="name"
+
+Mr. Daniel Kamau
+------StaffBoundaryX
+Content-Disposition: form-data; name="role"
+
+Teacher
+------StaffBoundaryX
+Content-Disposition: form-data; name="position"
+
+Mathematics & Physics Teacher
+------StaffBoundaryX
+Content-Disposition: form-data; name="department"
+
+Sciences
+------StaffBoundaryX
+Content-Disposition: form-data; name="email"
+
+daniel.kamau@katwanyaa.ac.ke
+------StaffBoundaryX
+Content-Disposition: form-data; name="phone"
+
++254712334455
+------StaffBoundaryX
+Content-Disposition: form-data; name="bio"
+
+A dedicated mathematics and physics teacher with 10 years of teaching experience.
+------StaffBoundaryX
+Content-Disposition: form-data; name="responsibilities"
+
+["Class teacher Form 2 North", "Science club patron", "Exam analysis coordinator"]
+------StaffBoundaryX
+Content-Disposition: form-data; name="expertise"
+
+["Mathematics", "Physics", "Exam preparation", "STEM training"]
+------StaffBoundaryX
+Content-Disposition: form-data; name="achievements"
+
+["2021 Best Teacher Award", "Improved KCSE mean score for 3 consecutive years"]
+------StaffBoundaryX
+Content-Disposition: form-data; name="image"; filename="staff1.jpg"
+Content-Type: image/jpeg
+
+< ./samples/staff1.jpg
+------StaffBoundaryX--

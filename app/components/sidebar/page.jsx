@@ -14,7 +14,9 @@ import {
   FiUser,
   FiShield,
   FiUsers,
-  FiUserCheck
+  FiUserCheck,
+  FiInfo,
+  FiMessageCircle
 } from 'react-icons/fi';
 
 import { 
@@ -22,13 +24,15 @@ import {
   IoStatsChart,
   IoRocket,
   IoNewspaper,
-  IoPeopleCircle
+  IoPeopleCircle,
+  IoSchool
 } from 'react-icons/io5';
 
 import { 
   MdAdminPanelSettings,
   MdPersonOutline
 } from 'react-icons/md';
+import { useEffect, useState } from 'react';
 
 // logo is served from public/ — use string path '/logo.jpg'
 AdminSidebar.defaultProps = {
@@ -45,6 +49,32 @@ AdminSidebar.defaultProps = {
 };
 
 export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen, tabs, user }) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect screen size and set initial sidebar state
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const mobile = window.innerWidth < 1024; // lg breakpoint
+      setIsMobile(mobile);
+      
+      // Auto-open sidebar on large screens, close on small screens
+      if (!mobile) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+
+    // Initial check
+    checkScreenSize();
+
+    // Add event listener
+    window.addEventListener('resize', checkScreenSize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, [setSidebarOpen]);
+
   const handleLogout = () => {
     // Implement logout logic
     console.log('Logging out...');
@@ -53,7 +83,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
     // Only close sidebar on mobile screens
-    if (window.innerWidth < 1024) { // lg breakpoint
+    if (isMobile) {
       setSidebarOpen(false);
     }
   };
@@ -117,9 +147,11 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
     { label: 'Success', value: '98%', icon: IoSparkles, color: 'orange', change: '+3%' }
   ];
 
-  // Define default tabs if none provided
+  // Define default tabs if none provided - UPDATED WITH BOTH TABS
   const defaultTabs = [
     { id: 'overview', label: 'Dashboard Overview', icon: FiUser },
+    { id: 'school-info', label: 'School Information', icon: FiInfo },
+    { id: 'guidance-counseling', label: 'Guidance Counseling', icon: FiMessageCircle },
     { id: 'students', label: 'Student Management', icon: FiUsers },
     { id: 'staff', label: 'Staff Management', icon: FiUserCheck },
     { id: 'assignments', label: 'Assignments', icon: FiBook },
@@ -137,7 +169,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
     <>
       {/* Mobile Overlay */}
       <AnimatePresence>
-        {sidebarOpen && (
+        {sidebarOpen && isMobile && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -208,14 +240,18 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
                 <p className="text-gray-600 text-sm font-medium">Admin Portal</p>
               </div>
             </div>
-            <motion.button
-              whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,0,0,0.05)' }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-xl transition-all duration-200 text-gray-600 hover:text-gray-800"
-            >
-              <FiX className="text-xl" />
-            </motion.button>
+            
+            {/* Close button - only show on mobile */}
+            {isMobile && (
+              <motion.button
+                whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,0,0,0.05)' }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setSidebarOpen(false)}
+                className="p-2 rounded-xl transition-all duration-200 text-gray-600 hover:text-gray-800"
+              >
+                <FiX className="text-xl" />
+              </motion.button>
+            )}
           </motion.div>
 
           {/* Navigation */}
@@ -332,11 +368,11 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
             transition={{ delay: 0.5 }}
             className="p-6 border-t border-gray-200 flex-shrink-0"
           >
-            {/* User Profile - FIXED: Added onClick handler */}
+            {/* User Profile */}
             <motion.div 
               whileHover={{ scale: 1.02, backgroundColor: 'rgba(59, 130, 246, 0.05)' }}
               className="flex items-center gap-3 p-3 rounded-2xl border border-gray-200 mb-4 cursor-pointer transition-all duration-300"
-              onClick={() => handleTabClick('admins-profile')} // Added this
+              onClick={() => handleTabClick('admins-profile')}
             >
               <div className="relative">
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-blue-500 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg">
@@ -368,12 +404,11 @@ export default function AdminSidebar({ activeTab, setActiveTab, sidebarOpen, set
 
             {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-2 mb-3">
-              {/* FIXED: Added onClick handler for Settings */}
               <motion.button
                 whileHover={{ scale: 1.05, backgroundColor: 'rgba(0,0,0,0.05)' }}
                 whileTap={{ scale: 0.95 }}
                 className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-800 rounded-xl transition-all duration-200 text-sm"
-                onClick={() => handleTabClick('admins-profile')} // Added this
+                onClick={() => handleTabClick('admins-profile')}
               >
                 <FiSettings className="text-base" />
                 <span>Settings</span>

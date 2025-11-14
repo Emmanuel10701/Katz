@@ -128,7 +128,7 @@ export async function POST(req) {
         subject, 
         content, 
         recipients, 
-        status: status || "draft"
+        status: status || "published"
       },
     });
 
