@@ -24,7 +24,8 @@ import {
   FiLoader, // ⚠️ This doesn't exist in Feather Icons - using FiClock as alternative
   FiArrowUpCircle, // ✅ Fixed from FiArrowUp
   FiTrendingUp,
-  FiClock 
+  FiClock,
+  FiArrowUpRight
     
 } from 'react-icons/fi';
 
@@ -50,6 +51,11 @@ export default function StudentManager() {
   const [promotionAction, setPromotionAction] = useState('promote');
   const [submitting, setSubmitting] = useState(false);
   const [promotionHistory, setPromotionHistory] = useState([]);
+
+  const [showGraduatedModal, setShowGraduatedModal] = useState(false);
+const [graduatedStudents, setGraduatedStudents] = useState([]);
+const [graduationYearFilter, setGraduationYearFilter] = useState('all');
+const [graduatedClassFilter, setGraduatedClassFilter] = useState('all');
   
   const [formData, setFormData] = useState({
     admissionNumber: '',
@@ -82,12 +88,67 @@ export default function StudentManager() {
   const statusOptions = ['Active', 'Inactive', 'Graduated', 'Transferred'];
   const attendanceOptions = ['95%', '90%', '85%', '80%', '75%', '70%'];
 
+
+
+  // Export graduated students to CSV
+const exportGraduatedToCSV = () => {
+  const graduatedStudents = students.filter(s => s.status === 'Graduated');
+  
+  if (graduatedStudents.length === 0) {
+    toast.warning('No graduated students to export');
+    return;
+  }
+
+  const headers = [
+    'Admission Number',
+    'Name',
+    'Final Class',
+    'Stream',
+    'Gender',
+    'Graduation Year',
+    'KCPE Marks',
+    'Previous School',
+    'Parent Name',
+    'Parent Email',
+    'Parent Phone'
+  ];
+
+  const csvData = graduatedStudents.map(student => [
+    student.admissionNumber,
+    student.name,
+    student.form, // This will be their final class
+    student.stream,
+    student.gender,
+    new Date().getFullYear().toString(), // You might want to store actual graduation year
+    student.kcpeMarks || '',
+    student.previousSchool || '',
+    student.parentName,
+    student.parentEmail || '',
+    student.parentPhone
+  ]);
+
+  const csvContent = [
+    headers.join(','),
+    ...csvData.map(row => row.map(field => `"${field}"`).join(','))
+  ].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `graduated_students_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+  
+  toast.success(`Exported ${graduatedStudents.length} graduated students to CSV`);
+};
+
   // Promotion mapping
   const promotionMap = {
     'Form 1': 'Form 2',
     'Form 2': 'Form 3', 
     'Form 3': 'Form 4',
-    'Form 4': 'Graduated'
+  'Form 4': 'Graduated' // Changed from promoting to graduated
   };
 
   // Fetch students from API
@@ -117,6 +178,21 @@ export default function StudentManager() {
       setRefreshing(false);
     }
   };
+
+
+
+  // Load graduated students when modal opens
+useEffect(() => {
+  if (showGraduatedModal) {
+    const graduated = students.filter(s => s.status === 'Graduated')
+      .map(student => ({
+        ...student,
+        graduationYear: new Date().getFullYear().toString(), // You might want to store this in your database
+        finalClass: student.form
+      }));
+    setGraduatedStudents(graduated);
+  }
+}, [showGraduatedModal, students]);
 
   // Fetch promotion history
   const fetchPromotionHistory = async (studentId = null) => {
@@ -177,34 +253,34 @@ export default function StudentManager() {
   }, []);
 
   // Filter students
-  useEffect(() => {
-    let filtered = students;
+// Filter students - EXCLUDE GRADUATED FROM MAIN VIEW
+useEffect(() => {
+  let filtered = students.filter(student => student.status !== 'Graduated'); // Exclude graduated
 
-    if (searchTerm) {
-      filtered = filtered.filter(student =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.admissionNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.parentEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.parentName?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+  if (searchTerm) {
+    filtered = filtered.filter(student =>
+      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.admissionNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.parentEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.parentName?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
 
-    if (selectedForm !== 'all') {
-      filtered = filtered.filter(student => student.form === selectedForm);
-    }
+  if (selectedForm !== 'all') {
+    filtered = filtered.filter(student => student.form === selectedForm);
+  }
 
-    if (selectedStream !== 'all') {
-      filtered = filtered.filter(student => student.stream === selectedStream);
-    }
+  if (selectedStream !== 'all') {
+    filtered = filtered.filter(student => student.stream === selectedStream);
+  }
 
-    if (selectedStatus !== 'all') {
-      filtered = filtered.filter(student => student.status === selectedStatus);
-    }
+  if (selectedStatus !== 'all') {
+    filtered = filtered.filter(student => student.status === selectedStatus);
+  }
 
-    setFilteredStudents(filtered);
-    setCurrentPage(1);
-  }, [searchTerm, selectedForm, selectedStream, selectedStatus, students]);
-
+  setFilteredStudents(filtered);
+  setCurrentPage(1);
+}, [searchTerm, selectedForm, selectedStream, selectedStatus, students]);
   // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -251,11 +327,22 @@ export default function StudentManager() {
     setEditingStudent(student);
     setShowModal(true);
   };
-
-  const handleViewDetails = (student) => {
+const handleViewDetails = async (student) => {
+  try {
+    // Use the existing student data immediately for better UX
     setSelectedStudent(student);
     setShowDetailModal(true);
-  };
+    
+    // Then fetch fresh data from API in background
+    const freshStudentData = await fetchStudentDetails(student.id);
+    if (freshStudentData) {
+      setSelectedStudent(freshStudentData);
+    }
+  } catch (error) {
+    console.error('Error loading student details:', error);
+    // Keep using the existing student data if API fails
+  }
+};
 
   const handleViewHistory = (student = null) => {
     if (student) {
@@ -267,78 +354,79 @@ export default function StudentManager() {
     setShowHistoryModal(true);
   };
 
-  const handleDelete = async (student) => {
-    if (confirm(`Are you sure you want to delete ${student.name}?`)) {
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/student/${student.id}`, {
-          method: 'DELETE',
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          setStudents(students.filter(s => s.id !== student.id));
-          toast.success('Student deleted successfully');
-        } else {
-          throw new Error(result.error);
-        }
-      } catch (error) {
-        console.error('Error deleting student:', error);
-        toast.error('Failed to delete student');
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleDelete = async (student) => {
+  if (confirm(`Are you sure you want to delete ${student.name}? This action cannot be undone.`)) {
     try {
-      setSubmitting(true);
-
-      const method = editingStudent ? 'PUT' : 'POST';
-      const url = editingStudent 
-        ? `/api/student/${editingStudent.id}`
-        : '/api/student';
-        
-      const payload = editingStudent 
-        ? { ...formData }
-        : formData;
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+      setLoading(true);
+      const response = await fetch(`/api/student/${student.id}`, {
+        method: 'DELETE',
       });
 
       const result = await response.json();
 
       if (result.success) {
-        if (editingStudent) {
-          setStudents(students.map(student => 
-            student.id === editingStudent.id 
-              ? result.student
-              : student
-          ));
-          toast.success('Student updated successfully');
-        } else {
-          setStudents([result.student, ...students]);
-          toast.success('Student created successfully');
-        }
-        setShowModal(false);
+        setStudents(students.filter(s => s.id !== student.id));
+        toast.success('Student deleted successfully');
       } else {
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error('Error saving student:', error);
-      toast.error(error.message || 'Failed to save student');
+      console.error('Error deleting student:', error);
+      toast.error(error.message || 'Failed to delete student');
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
-  };
+  }
+};
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    setSubmitting(true);
+
+    const method = editingStudent ? 'PUT' : 'POST';
+    const url = editingStudent 
+      ? `/api/student/${editingStudent.id}`  // Dynamic route for update
+      : '/api/student';
+      
+    // For PUT, don't send the id in the body since it's in the URL
+    const payload = editingStudent 
+      ? { ...formData }
+      : formData;
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      if (editingStudent) {
+        setStudents(students.map(student => 
+          student.id === editingStudent.id 
+            ? result.student
+            : student
+        ));
+        toast.success('Student updated successfully');
+      } else {
+        setStudents([result.student, ...students]);
+        toast.success('Student created successfully');
+      }
+      setShowModal(false);
+    } else {
+      throw new Error(result.error);
+    }
+  } catch (error) {
+    console.error('Error saving student:', error);
+    toast.error(error.message || 'Failed to save student');
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   // Export to CSV
   const exportToCSV = () => {
@@ -409,57 +497,65 @@ export default function StudentManager() {
     toast.success(`Exported ${filteredStudents.length} students to CSV`);
   };
 
-  // Handle promotion/graduation
-  const handlePromotion = async () => {
-    if (!promotionClass) {
-      toast.error('Please select a class');
-      return;
-    }
 
-    const actionText = promotionAction === 'promote' 
-      ? `promote all ${promotionClass} students to ${promotionMap[promotionClass]}`
-      : `graduate all ${promotionClass} students`;
 
-    if (!confirm(`Are you sure you want to ${actionText}? This action cannot be undone.`)) {
-      return;
-    }
+// Update the handlePromotion function to handle graduation properly
+const handlePromotion = async () => {
+  if (!promotionClass) {
+    toast.error('Please select a class');
+    return;
+  }
 
-    try {
-      setLoading(true);
-      const response = await fetch('/api/student', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          form: promotionClass, 
-          action: promotionAction 
-        }),
-      });
+  // Prevent promoting graduated students
+  if (promotionClass === 'Form 4' && promotionAction === 'promote') {
+    toast.error('Form 4 students cannot be promoted. Use "Graduate Class" instead.');
+    return;
+  }
 
-      const result = await response.json();
+  const actionText = promotionAction === 'promote' 
+    ? `promote all ${promotionClass} students to ${promotionMap[promotionClass]}`
+    : `graduate all ${promotionClass} students`;
 
-      if (result.success) {
-        await fetchStudents();
-        setPromotionClass('');
-        setPromotionAction('promote');
-        setShowPromotionModal(false);
+  if (!confirm(`Are you sure you want to ${actionText}? This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    setLoading(true);
+    const response = await fetch('/api/student', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        form: promotionClass, 
+        action: promotionAction 
+      }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      await fetchStudents();
+      setPromotionClass('');
+      setPromotionAction('promote');
+      setShowPromotionModal(false);
+      
+      const successMessage = promotionAction === 'promote'
+        ? `${result.count} students promoted from ${promotionClass} to ${promotionMap[promotionClass]}`
+        : `${result.count} students graduated successfully`;
         
-        const successMessage = promotionAction === 'promote'
-          ? `${result.count} students promoted from ${promotionClass} to ${promotionMap[promotionClass]}`
-          : `${result.count} students graduated successfully`;
-          
-        toast.success(successMessage);
-      } else {
-        throw new Error(result.error);
-      }
-    } catch (error) {
-      console.error('Error processing promotion:', error);
-      toast.error('Failed to process promotion/graduation');
-    } finally {
-      setLoading(false);
+      toast.success(successMessage);
+    } else {
+      throw new Error(result.error);
     }
-  };
+  } catch (error) {
+    console.error('Error processing promotion:', error);
+    toast.error('Failed to process promotion/graduation');
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Refresh data
   const handleRefresh = () => {
@@ -565,9 +661,10 @@ export default function StudentManager() {
   );
 
   // Get students count by form
-  const getStudentsByForm = (form) => {
-    return students.filter(s => s.form === form && s.status === 'Active').length;
-  };
+ // Get students count by form - EXCLUDE GRADUATED STUDENTS
+const getStudentsByForm = (form) => {
+  return students.filter(s => s.form === form && s.status !== 'Graduated').length;
+};
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 lg:p-6 space-y-6">
@@ -757,6 +854,16 @@ export default function StudentManager() {
           </motion.button>
         </div>
       </div>
+
+<motion.button
+  whileHover={{ scale: 1.02 }}
+  whileTap={{ scale: 0.98 }}
+  onClick={() => setShowGraduatedModal(true)}
+  className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all duration-300"
+>
+  <FiAward className="text-sm" />
+  View Graduated Students
+</motion.button>
 
       {/* Students Table */}
       {loading ? (
@@ -1463,6 +1570,157 @@ export default function StudentManager() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Graduated Students Modal */}
+<AnimatePresence>
+  {showGraduatedModal && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={() => setShowGraduatedModal(false)}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-800">Graduated Students</h2>
+            <button
+              onClick={() => setShowGraduatedModal(false)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <FiX className="text-xl text-gray-600" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {/* Filters for Graduated Students */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Graduation Year
+              </label>
+              <select
+                value={graduationYearFilter}
+                onChange={(e) => setGraduationYearFilter(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Years</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+                <option value="2021">2021</option>
+                <option value="2020">2020</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Final Class
+              </label>
+              <select
+                value={graduatedClassFilter}
+                onChange={(e) => setGraduatedClassFilter(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Classes</option>
+                <option value="Form 4">Form 4</option>
+              </select>
+            </div>
+
+            <div className="flex items-end">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={exportGraduatedToCSV}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 w-full justify-center"
+              >
+                <FiDownload className="text-lg" />
+                Export Graduated
+              </motion.button>
+            </div>
+          </div>
+
+          {/* Graduated Students Table */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Student</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Admission</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Final Class</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Graduation Year</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">KCPE Marks</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Performance</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {graduatedStudents
+                    .filter(student => 
+                      (graduationYearFilter === 'all' || student.graduationYear === graduationYearFilter) &&
+                      (graduatedClassFilter === 'all' || student.finalClass === graduatedClassFilter)
+                    )
+                    .map((student) => (
+                    <motion.tr
+                      key={student.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold">
+                            {student.name.charAt(0)}
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-semibold text-gray-900">{student.name}</div>
+                            <div className="text-sm text-gray-500">{student.gender}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-mono text-gray-900">{student.admissionNumber}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-semibold text-gray-900">{student.finalClass}</div>
+                        <div className="text-sm text-gray-500">{student.stream} Stream</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-semibold text-gray-900">{student.graduationYear}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-semibold text-gray-900">{student.kcpeMarks || 'N/A'}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <PerformanceBadge level={student.academicPerformance} />
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {graduatedStudents.length === 0 && (
+              <div className="text-center py-12">
+                <FiAward className="mx-auto text-4xl text-gray-400 mb-4" />
+                <p className="text-gray-500 text-lg">No graduated students found</p>
+                <p className="text-gray-400 text-sm mt-2">Graduated students will appear here</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
 
       {/* Promotion/Graduation Modal */}
       <AnimatePresence>

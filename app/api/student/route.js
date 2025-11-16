@@ -78,25 +78,114 @@ export async function POST(req) {
 }
 
 // 🔹 PUT update student
+// 🔹 PUT update student
+// 🔹 PUT update student
 export async function PUT(req) {
   try {
     const data = await req.json();
     const { id, ...updateData } = data;
 
-    const updatedStudent = await prisma.student.update({
-      where: { id: parseInt(id) },
-      data: {
-        ...updateData,
-        dateOfBirth: new Date(updateData.dateOfBirth),
-        enrollmentDate: new Date(updateData.enrollmentDate),
-        kcpeMarks: updateData.kcpeMarks ? parseInt(updateData.kcpeMarks) : null,
-      },
+    console.log('📝 Update request for student ID:', id);
+    console.log('📝 Update data:', updateData);
+
+    // Check if student exists first
+    const existingStudent = await prisma.student.findUnique({
+      where: { id: parseInt(id) }
     });
 
-    return NextResponse.json({ success: true, student: updatedStudent });
+    if (!existingStudent) {
+      return NextResponse.json(
+        { success: false, error: "Student not found" },
+        { status: 404 }
+      );
+    }
+
+    // Only check for admission number conflict if it's being changed
+    if (updateData.admissionNumber && updateData.admissionNumber !== existingStudent.admissionNumber) {
+      const duplicateStudent = await prisma.student.findFirst({
+        where: {
+          admissionNumber: updateData.admissionNumber,
+          id: { not: parseInt(id) } // Exclude current student
+        }
+      });
+
+      if (duplicateStudent) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: `Admission number ${updateData.admissionNumber} already exists for student: ${duplicateStudent.name}` 
+          }, 
+          { status: 400 }
+        );
+      }
+    }
+
+    // Prepare the update data - only include fields that are provided
+    const updatePayload = {};
+    
+    // Add fields only if they are provided in the update
+    if (updateData.admissionNumber !== undefined) updatePayload.admissionNumber = updateData.admissionNumber;
+    if (updateData.name !== undefined) updatePayload.name = updateData.name;
+    if (updateData.form !== undefined) updatePayload.form = updateData.form;
+    if (updateData.stream !== undefined) updatePayload.stream = updateData.stream;
+    if (updateData.gender !== undefined) updatePayload.gender = updateData.gender;
+    if (updateData.dateOfBirth !== undefined) updatePayload.dateOfBirth = new Date(updateData.dateOfBirth);
+    if (updateData.enrollmentDate !== undefined) updatePayload.enrollmentDate = new Date(updateData.enrollmentDate);
+    if (updateData.kcpeMarks !== undefined) updatePayload.kcpeMarks = updateData.kcpeMarks ? parseInt(updateData.kcpeMarks) : null;
+    if (updateData.previousSchool !== undefined) updatePayload.previousSchool = updateData.previousSchool;
+    if (updateData.parentName !== undefined) updatePayload.parentName = updateData.parentName;
+    if (updateData.parentEmail !== undefined) updatePayload.parentEmail = updateData.parentEmail;
+    if (updateData.parentPhone !== undefined) updatePayload.parentPhone = updateData.parentPhone;
+    if (updateData.emergencyContact !== undefined) updatePayload.emergencyContact = updateData.emergencyContact;
+    if (updateData.address !== undefined) updatePayload.address = updateData.address;
+    if (updateData.medicalInfo !== undefined) updatePayload.medicalInfo = updateData.medicalInfo;
+    if (updateData.hobbies !== undefined) updatePayload.hobbies = updateData.hobbies;
+    if (updateData.academicPerformance !== undefined) updatePayload.academicPerformance = updateData.academicPerformance;
+    if (updateData.attendance !== undefined) updatePayload.attendance = updateData.attendance;
+    if (updateData.disciplineRecord !== undefined) updatePayload.disciplineRecord = updateData.disciplineRecord;
+    if (updateData.status !== undefined) updatePayload.status = updateData.status;
+
+    console.log('📝 Final update payload:', updatePayload);
+
+    const updatedStudent = await prisma.student.update({
+      where: { id: parseInt(id) },
+      data: updatePayload,
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      student: updatedStudent,
+      message: "Student updated successfully" 
+    });
+
   } catch (error) {
     console.error("❌ PUT Error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    
+    // Handle specific Prisma errors
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "This admission number already exists for another student. Please use a different admission number." 
+        }, 
+        { status: 400 }
+      );
+    }
+    
+    if (error.code === 'P2025') {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "Student not found" 
+        }, 
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to update student" }, 
+      { status: 500 }
+    );
   }
 }
 

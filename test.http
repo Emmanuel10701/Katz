@@ -253,15 +253,15 @@ GET http://0.0.0.0:3001/api/student
 ### 14. TEST - Add More Students for Testing Promotion System
 
 #### Add Form 1 Student for Testing
-POST http://0.0.0.0:3001/api/student
+PUT http://0.0.0.0:3001/api/student
 Content-Type: application/json
 
 {
   "admissionNumber": "ADM/TEST/001",
   "name": "Test Student One",
   "form": "Form 1",
-  "stream": "North",
-  "gender": "Male",
+  "stream": "East",
+  "gender": "Female",
   "dateOfBirth": "2009-12-01",
   "enrollmentDate": "2024-01-10",
   "kcpeMarks": 340,
@@ -373,7 +373,7 @@ Content-Type: application/json
 }
 
 ### 20. TEST - Update Student Status Only
-PUT http://0.0.0.0:3001/api/student/2
+PUT http://0.0.0.0:3001/api/student
 Content-Type: application/json
 
 {
@@ -398,4 +398,228 @@ Content-Type: application/json
   "attendance": "98%",
   "disciplineRecord": "Excellent",
   "status": "Inactive"
+}
+
+### CREATE - Add New Student for Testing Updates
+POST http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "admissionNumber": "ADM/2024/999",
+  "name": "Brian Kimani",
+  "form": "Form 2",
+  "stream": "North",
+  "gender": "Male",
+  "dateOfBirth": "2008-11-15",
+  "enrollmentDate": "2024-01-15",
+  "kcpeMarks": 345,
+  "previousSchool": "Hillside Primary",
+  "parentName": "Samuel Kimani",
+  "parentEmail": "samuel.kimani@email.com",
+  "parentPhone": "+254711223344",
+  "emergencyContact": "+254722334455",
+  "address": "555 Test Road, Nairobi, Kenya",
+  "medicalInfo": "None",
+  "hobbies": "Swimming, Coding",
+  "academicPerformance": "Good",
+  "attendance": "93%",
+  "disciplineRecord": "Good",
+  "status": "Active"
+}
+
+### UPDATE - Update Brian Kimani's Details
+PUT http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+"id": 7,
+"admissionNumber": "ADM/2024/999",
+"name": "Brian Kimani Mwangi",
+"form": "Form 2",
+"stream": "South",
+"gender": "Male",
+"dateOfBirth": "2008-11-15",
+"enrollmentDate": "2024-01-15",
+"kcpeMarks": 355,
+"previousSchool": "Hillside Primary Academy",
+"parentName": "Samuel Kimani",
+"parentEmail": "samuel.kimani@email.com",
+"parentPhone": "+254711223344",
+"emergencyContact": "+254722334455",
+"address": "555 Test Road, Westlands, Nairobi, Kenya",
+"medicalInfo": "Allergic to penicillin",
+"hobbies": "Swimming, Coding, Basketball",
+"academicPerformance": "Excellent",
+"attendance": "96%",
+"disciplineRecord": "Excellent",
+"status": "Active"
+}
+
+### GET single student
+GET http://0.0.0.0:3001/api/student
+
+### UPDATE single student
+POST  http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "admissionNumber": "ADM/2024/999",
+  "name": "Brian Kimani Mwangi",
+  "form": "Form 2",
+  "stream": "South",
+  "gender": "Male",
+  "dateOfBirth": "2008-11-15",
+  "enrollmentDate": "2024-01-15",
+  "kcpeMarks": 355,
+  "previousSchool": "Hillside Primary Academy",
+  "parentName": "Samuel Kimani",
+  "parentEmail": "samuel.kimani@email.com",
+  "parentPhone": "+254711223344",
+  "emergencyContact": "+254722334455",
+  "address": "555 Test Road, Westlands, Nairobi, Kenya",
+  "medicalInfo": "Allergic to penicillin",
+  "hobbies": "Swimming, Coding, Basketball",
+  "academicPerformance": "Excellent",
+  "attendance": "96%",
+  "disciplineRecord": "Excellent",
+  "status": "Active"
+}
+
+### DELETE single student
+DELETE http://0.0.0.0:3001/api/student/7
+
+####
+GET http://0.0.0.0:3001/api/student
+
+
+
+
+### STEP 1: Create New Student
+POST http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "admissionNumber": "ADM/2024/015",
+  "name": "James Mwangi",
+  "form": "Form 3",
+  "stream": "North",
+  "gender": "Male",
+  "dateOfBirth": "2007-08-20",
+  "enrollmentDate": "2024-01-10",
+  "kcpeMarks": 365,
+  "previousSchool": "Pioneer Academy",
+  "parentName": "Daniel Mwangi",
+  "parentEmail": "daniel.mwangi@email.com",
+  "parentPhone": "+254711999888",
+  "emergencyContact": "+254722888777",
+  "address": "123 New Street, Nairobi, Kenya",
+  "medicalInfo": "None",
+  "hobbies": "Football, Music, Coding",
+  "academicPerformance": "Good",
+  "attendance": "94%",
+  "disciplineRecord": "Good",
+  "status": "Active"
+}
+
+
+#####
+PUT http://0.0.0.0:3001/api/student/8
+Content-Type: application/json
+
+{
+  "admissionNumber": "ADM/2024/015",
+  "name": "James Mwangi Kamau",
+  "form": "Form 3", 
+  "stream": "South",
+  "gender": "Male",
+  "dateOfBirth": "2007-08-20",
+  "enrollmentDate": "2024-01-10",
+  "kcpeMarks": 370,
+  "previousSchool": "Pioneer Academy International",
+  "parentName": "Daniel Mwangi",
+  "parentEmail": "daniel.mwangi@updated.com",
+  "parentPhone": "+254711999888",
+  "emergencyContact": "+254722888777",
+  "address": "123 New Street, Westlands, Nairobi, Kenya",
+  "medicalInfo": "Allergic to dairy",
+  "hobbies": "Football, Music, Coding, Swimming",
+  "academicPerformance": "Excellent",
+  "attendance": "96%",
+  "disciplineRecord": "Excellent",
+  "status": "Active"
+}
+
+
+
+### STEP 1: Create New Student
+POST http://0.0.0.0:3001/api/student
+Content-Type: application/json
+
+{
+  "admissionNumber": "ADM/2024/100",
+  "name": "Sarah Johnson",
+  "form": "Form 2",
+  "stream": "North",
+  "gender": "Female",
+  "dateOfBirth": "2008-03-15",
+  "enrollmentDate": "2024-01-10",
+  "kcpeMarks": 345,
+  "previousSchool": "Sunrise Academy",
+  "parentName": "Michael Johnson",
+  "parentEmail": "michael.johnson@email.com",
+  "parentPhone": "+254711555666",
+  "emergencyContact": "+254722666777",
+  "address": "789 Oak Street, Nairobi, Kenya",
+  "medicalInfo": "None",
+  "hobbies": "Reading, Swimming, Art",
+  "academicPerformance": "Good",
+  "attendance": "92%",
+  "disciplineRecord": "Good",
+  "status": "Active"
+}
+
+### STEP 2: Update Student (Replace {id} with actual ID from step 1)
+PUT http://0.0.0.0:3001/api/student/14
+Content-Type: application/json
+
+{
+  "admissionNumber": "ADM/2024/100",
+  "name": "Sarah Johnson Wambui",
+  "form": "Form 2",
+  "stream": "West",
+  "gender": "Female",
+  "dateOfBirth": "2008-03-15",
+  "enrollmentDate": "2024-01-10",
+  "kcpeMarks": 355,
+  "previousSchool": "Sunrise Academy International",
+  "parentName": "Michael Johnson",
+  "parentEmail": "michael.johnson@updated.com",
+  "parentPhone": "+254711555666",
+  "emergencyContact": "+254722666777",
+  "address": "789 Oak Street, Westlands, Nairobi, Kenya",
+  "medicalInfo": "Allergic to pollen",
+  "hobbies": "Reading, Swimming, Art, Music",
+  "academicPerformance": "Excellent",
+  "attendance": "95%",
+  "disciplineRecord": "Excellent",
+  "status": "Active"
+}
+
+### STEP 3: Change Admission Number
+PUT http://0.0.0.0:3001/api/student/14
+Content-Type: application/json
+
+{
+  "admissionNumber": "ADM/2024/200",
+  "name": "Sarah Johnson Wambui",
+  "stream": "East"
+}
+
+### STEP 4: Partial Update
+PUT http://0.0.0.0:3001/api/student/14
+Content-Type: application/json
+
+{
+  "academicPerformance": "Outstanding",
+  "attendance": "98%"
 }
