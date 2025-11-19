@@ -1,11 +1,10 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiPlus, FiSearch, FiEdit, FiTrash2, FiImage, FiFilter, FiDownload,
   FiX, FiEye, FiUpload, FiStar, FiGrid, FiList, FiChevronLeft,
   FiChevronRight, FiCheck, FiVideo, FiUser, FiCalendar, FiRotateCw,
-  FiTag, FiFolder, FiInfo
+  FiTag, FiFolder, FiInfo,FiUsers 
 } from 'react-icons/fi';
 
 // Categories and Departments from your schema
@@ -350,11 +349,7 @@ export default function GalleryManager() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 flex items-center justify-center">
         <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
-          />
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
           <p className="text-gray-600 text-lg">Loading gallery...</p>
         </div>
       </div>
@@ -388,12 +383,9 @@ export default function GalleryManager() {
           { label: 'Videos', value: stats.videos, icon: FiVideo, color: 'red' },
           { label: 'Categories', value: CATEGORIES.length, icon: FiTag, color: 'purple' },
         ].map((stat, index) => (
-          <motion.div
+          <div
             key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200"
+            className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200 transition-transform hover:scale-105"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -404,7 +396,7 @@ export default function GalleryManager() {
                 <stat.icon className={`text-xl text-${stat.color}-600`} />
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
@@ -478,49 +470,38 @@ export default function GalleryManager() {
       </div>
 
       {/* Bulk Actions */}
-      <AnimatePresence>
-        {selectedItems.size > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl p-4 shadow-lg"
-          >
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <FiCheck className="text-xl" />
-                <span className="font-semibold">
-                  {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} selected
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleBulkDelete}
-                  className="px-4 py-2 bg-red-500/80 backdrop-blur-sm rounded-xl font-semibold flex items-center gap-2 hover:bg-red-600 transition-colors"
-                >
-                  <FiTrash2 className="text-sm" />
-                  Delete Selected
-                </button>
-                <button
-                  onClick={() => setSelectedItems(new Set())}
-                  className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-xl font-semibold flex items-center gap-2 hover:bg-white/30 transition-colors"
-                >
-                  <FiX className="text-sm" />
-                  Clear Selection
-                </button>
-              </div>
+      {selectedItems.size > 0 && (
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl p-4 shadow-lg transition-all">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <FiCheck className="text-xl" />
+              <span className="font-semibold">
+                {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} selected
+              </span>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <div className="flex gap-2">
+              <button
+                onClick={handleBulkDelete}
+                className="px-4 py-2 bg-red-500/80 backdrop-blur-sm rounded-xl font-semibold flex items-center gap-2 hover:bg-red-600 transition-colors"
+              >
+                <FiTrash2 className="text-sm" />
+                Delete Selected
+              </button>
+              <button
+                onClick={() => setSelectedItems(new Set())}
+                className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-xl font-semibold flex items-center gap-2 hover:bg-white/30 transition-colors"
+              >
+                <FiX className="text-sm" />
+                Clear Selection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Gallery Content */}
       {currentItems.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-16 bg-white rounded-2xl shadow-lg border border-gray-200"
-        >
+        <div className="text-center py-16 bg-white rounded-2xl shadow-lg border border-gray-200 transition-all">
           <div className="text-gray-400 text-6xl mb-4">📷</div>
           <h3 className="text-gray-800 text-xl font-semibold mb-2">No media found</h3>
           <p className="text-gray-600 mb-6">
@@ -541,7 +522,7 @@ export default function GalleryManager() {
             <FiUpload className="inline mr-2" />
             Upload Media
           </button>
-        </motion.div>
+        </div>
       ) : (
         <>
           {/* Gallery Grid/List */}
@@ -607,62 +588,56 @@ export default function GalleryManager() {
       )}
 
       {/* Upload Modal */}
-      <AnimatePresence>
-        {showModal && (
-          <UploadModal
-            formData={formData}
-            setFormData={setFormData}
-            editingItem={editingItem}
-            uploadProgress={uploadProgress}
-            isUploading={isUploading}
-            dragActive={dragActive}
-            categories={CATEGORIES}
-            departments={DEPARTMENTS}
-            onClose={() => {
-              setShowModal(false);
-              setEditingItem(null);
-              resetForm();
-            }}
-            onSubmit={editingItem ? handleUpdate : handleCreate}
-            onFileSelect={handleFilesSelect}
-            onDrag={handleDrag}
-            onDrop={handleDrop}
-            removeFile={removeFile}
-            fileInputRef={fileInputRef}
-          />
-        )}
-      </AnimatePresence>
+      {showModal && (
+        <UploadModal
+          formData={formData}
+          setFormData={setFormData}
+          editingItem={editingItem}
+          uploadProgress={uploadProgress}
+          isUploading={isUploading}
+          dragActive={dragActive}
+          categories={CATEGORIES}
+          departments={DEPARTMENTS}
+          onClose={() => {
+            setShowModal(false);
+            setEditingItem(null);
+            resetForm();
+          }}
+          onSubmit={editingItem ? handleUpdate : handleCreate}
+          onFileSelect={handleFilesSelect}
+          onDrag={handleDrag}
+          onDrop={handleDrop}
+          removeFile={removeFile}
+          fileInputRef={fileInputRef}
+        />
+      )}
 
       {/* Preview Modal */}
-      <AnimatePresence>
-        {selectedMedia && (
-          <PreviewModal
-            item={selectedMedia}
-            onClose={() => setSelectedMedia(null)}
-            onDownload={() => {
-              const link = document.createElement('a');
-              link.href = selectedMedia.fileUrl;
-              link.download = selectedMedia.fileName;
-              link.click();
-            }}
-          />
-        )}
-      </AnimatePresence>
+      {selectedMedia && (
+        <PreviewModal
+          item={selectedMedia}
+          onClose={() => setSelectedMedia(null)}
+          onDownload={() => {
+            const link = document.createElement('a');
+            link.href = selectedMedia.fileUrl;
+            link.download = selectedMedia.fileName;
+            link.click();
+          }}
+        />
+      )}
     </div>
   );
 }
 
-// Gallery Item Component (keep the same as before, but updated to use department instead of album)
+// Gallery Item Component
 const GalleryItem = ({ 
   item, viewMode, isSelected, hasError, onSelect, onEdit, onDelete, onView, onImageError 
 }) => {
   if (viewMode === 'list') {
     return (
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className={`bg-white rounded-2xl p-4 flex items-center gap-4 border-2 transition-all ${
-          isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'
+      <div
+        className={`bg-white rounded-2xl p-4 flex items-center gap-4 border-2 transition-all hover:border-blue-300 ${
+          isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
         }`}
       >
         <button 
@@ -716,46 +691,37 @@ const GalleryItem = ({
         </div>
 
         <div className="flex items-center gap-1">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={onView}
-            className="p-2 text-gray-600 hover:text-blue-600 transition-colors rounded-lg"
+            className="p-2 text-gray-600 hover:text-blue-600 transition-colors rounded-lg hover:scale-110"
             title="View"
           >
             <FiEye className="text-lg" />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          </button>
+          <button
             onClick={onEdit}
-            className="p-2 text-gray-600 hover:text-green-600 transition-colors rounded-lg"
+            className="p-2 text-gray-600 hover:text-green-600 transition-colors rounded-lg hover:scale-110"
             title="Edit"
           >
             <FiEdit className="text-lg" />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          </button>
+          <button
             onClick={onDelete}
-            className="p-2 text-gray-600 hover:text-red-600 transition-colors rounded-lg"
+            className="p-2 text-gray-600 hover:text-red-600 transition-colors rounded-lg hover:scale-110"
             title="Delete"
           >
             <FiTrash2 className="text-lg" />
-          </motion.button>
+          </button>
         </div>
-      </motion.div>
+      </div>
     );
   }
 
   // Grid View
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ y: -4 }}
-      className={`bg-white rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${
-        isSelected ? 'border-blue-500 ring-4 ring-blue-200' : 'border-gray-200 hover:border-blue-300'
+    <div
+      className={`bg-white rounded-2xl overflow-hidden border-2 transition-all cursor-pointer hover:border-blue-300 hover:scale-105 ${
+        isSelected ? 'border-blue-500 ring-4 ring-blue-200' : 'border-gray-200'
       }`}
     >
       <div className="relative group">
@@ -805,33 +771,27 @@ const GalleryItem = ({
           {/* Overlay Actions */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex items-center justify-center">
             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+              <button
                 onClick={(e) => { e.stopPropagation(); onView(); }}
-                className="p-3 bg-white/20 backdrop-blur-sm rounded-xl text-white hover:bg-white/30 transition-colors"
+                className="p-3 bg-white/20 backdrop-blur-sm rounded-xl text-white hover:bg-white/30 transition-colors hover:scale-110"
                 title="View"
               >
                 <FiEye className="text-lg" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+              </button>
+              <button
                 onClick={(e) => { e.stopPropagation(); onEdit(); }}
-                className="p-3 bg-white/20 backdrop-blur-sm rounded-xl text-white hover:bg-white/30 transition-colors"
+                className="p-3 bg-white/20 backdrop-blur-sm rounded-xl text-white hover:bg-white/30 transition-colors hover:scale-110"
                 title="Edit"
               >
                 <FiEdit className="text-lg" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+              </button>
+              <button
                 onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                className="p-3 bg-red-500/80 backdrop-blur-sm rounded-xl text-white hover:bg-red-600 transition-colors"
+                className="p-3 bg-red-500/80 backdrop-blur-sm rounded-xl text-white hover:bg-red-600 transition-colors hover:scale-110"
                 title="Delete"
               >
                 <FiTrash2 className="text-lg" />
-              </motion.button>
+              </button>
             </div>
           </div>
         </div>
@@ -853,57 +813,51 @@ const GalleryItem = ({
           </span>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
-// Upload Modal Component (updated for your schema)
+
+// Upload Modal Component - Buttons moved up slightly
 const UploadModal = ({
   formData, setFormData, editingItem, uploadProgress, isUploading, dragActive,
   categories, departments, onClose, onSubmit, onFileSelect, onDrag, onDrop, removeFile, fileInputRef
 }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
-        onClick={e => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
           <h2 className="text-xl font-bold text-gray-800">
             {editingItem ? 'Edit Gallery Item' : 'Upload to Gallery'}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+            className="p-2 hover:bg-white rounded-xl transition-colors border border-gray-200"
             disabled={isUploading}
           >
             <FiX className="text-xl text-gray-600" />
           </button>
         </div>
 
-        <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+        <div className="overflow-y-auto max-h-[calc(90vh-180px)]"> {/* Reduced height to move buttons up */}
           <div className="p-6 space-y-6">
             {/* File Upload Section */}
             {!editingItem && (
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-4">Select Files</h3>
+              <div className="bg-gradient-to-br from-blue-50/50 to-cyan-50/30 rounded-2xl p-5 border border-blue-100">
+                <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <FiUpload className="text-blue-500" />
+                  <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                    Select Files
+                  </span>
+                </h3>
                 
                 {/* Drag & Drop Zone */}
                 <div
-                  className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
+                  className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all cursor-pointer ${
                     dragActive 
-                      ? 'border-blue-500 bg-blue-50' 
-                      : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+                      ? 'border-blue-500 bg-blue-100/50' 
+                      : 'border-blue-300 hover:border-blue-400 hover:bg-blue-50/30'
                   } ${isUploading ? 'pointer-events-none opacity-60' : ''}`}
                   onDragEnter={onDrag}
                   onDragLeave={onDrag}
@@ -911,8 +865,8 @@ const UploadModal = ({
                   onDrop={onDrop}
                   onClick={() => !isUploading && fileInputRef.current?.click()}
                 >
-                  <FiUpload className="text-4xl text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2 font-medium">
+                  <FiUpload className="text-4xl text-blue-400 mx-auto mb-3" />
+                  <p className="text-gray-700 mb-2 font-medium">
                     {isUploading ? 'Uploading...' : 'Drag and drop files here'}
                   </p>
                   <p className="text-gray-500 text-sm mb-4">
@@ -930,7 +884,7 @@ const UploadModal = ({
                   {!isUploading && (
                     <button
                       onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                      className="px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                      className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg shadow-blue-500/25"
                     >
                       Browse Files
                     </button>
@@ -940,21 +894,28 @@ const UploadModal = ({
                 {/* Selected Files */}
                 {formData.files.length > 0 && (
                   <div className="mt-4">
-                    <h4 className="font-medium text-gray-800 mb-3">
-                      Selected Files ({formData.files.length})
+                    <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                      <FiCheck className="text-green-500" />
+                      <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                        Selected Files ({formData.files.length})
+                      </span>
                     </h4>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {formData.files.map((file, index) => (
-                        <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border">
-                          <div className="w-10 h-10 bg-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <div key={index} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-green-100 shadow-sm">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            file.type.startsWith('image/') ? 'bg-blue-100' : 'bg-purple-100'
+                          }`}>
                             {file.type.startsWith('image/') ? 
-                              <FiImage className="text-gray-600" /> : 
-                              <FiVideo className="text-gray-600" />
+                              <FiImage className={`text-lg ${
+                                file.type.startsWith('image/') ? 'text-blue-600' : 'text-purple-600'
+                              }`} /> : 
+                              <FiVideo className="text-lg text-purple-600" />
                             }
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm text-gray-800 truncate">{file.name}</p>
-                            <p className="text-gray-600 text-xs">
+                            <p className="font-medium text-gray-800 truncate">{file.name}</p>
+                            <p className="text-gray-600 text-sm">
                               {(file.size / (1024 * 1024)).toFixed(1)} MB • {file.type.split('/')[1].toUpperCase()}
                             </p>
                           </div>
@@ -962,16 +923,16 @@ const UploadModal = ({
                             <div className="flex items-center gap-2">
                               <div className="w-20 bg-gray-200 rounded-full h-2">
                                 <div 
-                                  className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                                  className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-300"
                                   style={{ width: `${uploadProgress[file.name]}%` }}
                                 />
                               </div>
-                              <span className="text-xs text-gray-500">{uploadProgress[file.name]}%</span>
+                              <span className="text-sm text-gray-500 font-medium">{uploadProgress[file.name]}%</span>
                             </div>
                           ) : (
                             <button
                               onClick={() => removeFile(file.name)}
-                              className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors flex-shrink-0"
+                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
                               disabled={isUploading}
                             >
                               <FiX className="text-lg" />
@@ -986,29 +947,35 @@ const UploadModal = ({
             )}
 
             {/* Form Fields */}
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title *
+                <label className="block text-sm font-semibold mb-3 flex items-center gap-2">
+                  <FiTag className="text-red-500" />
+                  <span className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+                    Title *
+                  </span>
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                   placeholder="Enter gallery title"
                   disabled={isUploading}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category
+                <label className="block text-sm font-semibold mb-3 flex items-center gap-2">
+                  <FiFolder className="text-purple-500" />
+                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    Category
+                  </span>
                 </label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   disabled={isUploading}
                 >
                   {categories.map(cat => (
@@ -1018,13 +985,16 @@ const UploadModal = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Department
+                <label className="block text-sm font-semibold mb-3 flex items-center gap-2">
+                  <FiUsers className="text-green-500" />
+                  <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                    Department
+                  </span>
                 </label>
                 <select
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                   disabled={isUploading}
                 >
                   {departments.map(dept => (
@@ -1034,15 +1004,18 @@ const UploadModal = ({
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
+                <label className="block text-sm font-semibold mb-3 flex items-center gap-2">
+                  <FiEdit className="text-orange-500" />
+                  <span className="bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                    Description
+                  </span>
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter gallery description"
+                  rows={4}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                  placeholder="Enter gallery description..."
                   disabled={isUploading}
                 />
               </div>
@@ -1050,21 +1023,19 @@ const UploadModal = ({
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+        {/* Footer Actions - Moved up with reduced padding */}
+        <div className="flex items-center justify-end gap-4 p-4 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50/30"> {/* Reduced padding from p-6 to p-4 */}
           <button
             onClick={onClose}
-            className="px-6 py-3 text-gray-600 hover:text-gray-800 font-semibold transition-colors disabled:opacity-50"
+            className="px-6 py-3 text-gray-600 hover:text-gray-800 font-semibold transition-colors disabled:opacity-50 border border-gray-300 rounded-xl hover:bg-white hover:border-gray-400 hover:shadow-lg min-w-24"
             disabled={isUploading}
           >
             Cancel
           </button>
-          <motion.button
-            whileHover={!isUploading ? { scale: 1.02 } : {}}
-            whileTap={!isUploading ? { scale: 0.98 } : {}}
+          <button
             onClick={onSubmit}
             disabled={isUploading || (!editingItem && formData.files.length === 0) || !formData.title.trim()}
-            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 transition-all disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 transition-all disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 min-w-32 justify-center"
           >
             {isUploading ? (
               <>
@@ -1074,129 +1045,17 @@ const UploadModal = ({
             ) : editingItem ? (
               <>
                 <FiCheck />
-                Update Gallery
+                Update Item
               </>
             ) : (
               <>
                 <FiUpload />
-                Upload {formData.files.length > 1 ? `${formData.files.length} Files` : 'Media'}
+                Upload Media
               </>
             )}
-          </motion.button>
+          </button>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 };
-
-// Preview Modal Component (keep the same as before)
-const PreviewModal = ({ item, onClose, onDownload }) => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4"
-    onClick={onClose}
-  >
-    <motion.div
-      initial={{ scale: 0.9, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0.9, opacity: 0 }}
-      className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
-      onClick={e => e.stopPropagation()}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-800 truncate pr-4">{item.title}</h3>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded-xl transition-colors flex-shrink-0"
-        >
-          <FiX className="text-xl text-gray-600" />
-        </button>
-      </div>
-
-      <div className="p-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Media Display */}
-          <div className="flex-1 flex justify-center items-center bg-gray-100 rounded-2xl p-4 min-h-[400px]">
-            {item.type === 'image' ? (
-              <img
-                src={item.fileUrl}
-                alt={item.title}
-                className="max-w-full max-h-[70vh] object-contain rounded-xl"
-              />
-            ) : (
-              <video
-                controls
-                className="max-w-full rounded-xl"
-                src={item.fileUrl}
-              >
-                Your browser does not support the video tag.
-              </video>
-            )}
-          </div>
-
-          {/* Media Details */}
-          <div className="lg:w-80 space-y-4">
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-              <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <FiInfo className="text-blue-500" />
-                Media Information
-              </h4>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Type:</span>
-                  <span className="font-medium capitalize">{item.type}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Size:</span>
-                  <span className="font-medium">{item.fileSize}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Category:</span>
-                  <span className="font-medium capitalize">{item.category.toLowerCase().replace('_', ' ')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Department:</span>
-                  <span className="font-medium capitalize">{item.department.toLowerCase()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Uploaded:</span>
-                  <span className="font-medium">{new Date(item.uploadDate).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Views:</span>
-                  <span className="font-medium">{item.views}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Description */}
-            {item.description && (
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                <h4 className="font-semibold text-gray-800 mb-2">Description</h4>
-                <p className="text-gray-600 text-sm">{item.description}</p>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-4 border-t border-gray-200">
-              <button
-                onClick={onDownload}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
-              >
-                <FiDownload className="text-lg" />
-                Download
-              </button>
-              <button className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2">
-                <FiStar className="text-lg" />
-                Share
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  </motion.div>
-);

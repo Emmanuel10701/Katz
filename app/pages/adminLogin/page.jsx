@@ -1,6 +1,5 @@
 'use client';
-import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -16,14 +15,10 @@ import {
   FiBarChart2,
   FiUsers,
   FiBook,
-  FiCalendar,
   FiMail,
-  FiPhone
+  FiPhone,
+  FiLoader
 } from 'react-icons/fi';
-import { 
-  IoRocketOutline,
-  IoStatsChartOutline
-} from 'react-icons/io5';
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({
@@ -34,7 +29,92 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const router = useRouter();
+
+  // Fetch real stats from backend when component loads
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        setStatsLoading(true);
+        
+        // Fetch all stats in parallel for better performance
+        const [
+          studentsRes,
+          staffRes,
+          subscribersRes,
+          assignmentsRes,
+          eventsRes
+        ] = await Promise.allSettled([
+          fetch('/api/student'),
+          fetch('/api/staff'),
+          fetch('/api/subscriber'),
+          fetch('/api/assignment'),
+          fetch('/api/events')
+        ]);
+
+        // Process responses
+        const students = studentsRes.status === 'fulfilled' ? await studentsRes.value.json() : { students: [] };
+        const staff = staffRes.status === 'fulfilled' ? await staffRes.value.json() : { staff: [] };
+        const subscribers = subscribersRes.status === 'fulfilled' ? await subscribersRes.value.json() : { subscribers: [] };
+        const assignments = assignmentsRes.status === 'fulfilled' ? await assignmentsRes.value.json() : { assignments: [] };
+        const events = eventsRes.status === 'fulfilled' ? await eventsRes.value.json() : { events: [] };
+
+        // Calculate real stats
+        const activeStudents = students.students?.filter(s => s.status === 'Active').length || 0;
+        const totalStudents = students.students?.length || 0;
+        const activeAssignments = assignments.assignments?.filter(a => a.status === 'active').length || 0;
+        const upcomingEvents = events.events?.filter(e => new Date(e.date) > new Date()).length || 0;
+
+        setStats({
+          totalStudents,
+          activeStudents,
+          totalStaff: staff.staff?.length || 0,
+          totalSubscribers: subscribers.subscribers?.length || 0,
+          activeAssignments,
+          upcomingEvents,
+          // Calculate classes today based on current day schedule
+          classesToday: calculateTodaysClasses(events.events),
+          pendingTasks: calculatePendingTasks(assignments.assignments)
+        });
+
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+        // Set default stats if API fails
+        setStats({
+          totalStudents: 0,
+          activeStudents: 0,
+          totalStaff: 0,
+          totalSubscribers: 0,
+          activeAssignments: 0,
+          upcomingEvents: 0,
+          classesToday: 0,
+          pendingTasks: 0
+        });
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchDashboardStats();
+  }, []);
+
+  // Helper function to calculate today's classes
+  const calculateTodaysClasses = (events = []) => {
+    const today = new Date().toDateString();
+    return events.filter(event => 
+      new Date(event.date).toDateString() === today && 
+      event.type === 'class'
+    ).length;
+  };
+
+  // Helper function to calculate pending tasks
+  const calculatePendingTasks = (assignments = []) => {
+    return assignments.filter(assignment => 
+      assignment.status === 'pending' || assignment.status === 'assigned'
+    ).length;
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -53,21 +133,47 @@ export default function AdminLogin() {
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = 'Please enter a valid email address';
     }
     
     if (!formData.password) {
       newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const getErrorMessage = (error) => {
+    const errorMessage = error.message || error;
+    
+    if (errorMessage.toLowerCase().includes('user not found') || 
+        errorMessage.toLowerCase().includes('user does not exist')) {
+      return '❌ User not found. Please check your email address.';
+    }
+    
+    if (errorMessage.toLowerCase().includes('invalid password') || 
+        errorMessage.toLowerCase().includes('incorrect password')) {
+      return '❌ Incorrect password. Please try again.';
+    }
+    
+    if (errorMessage.toLowerCase().includes('network') || 
+        errorMessage.toLowerCase().includes('fetch')) {
+      return '❌ Network error. Please check your internet connection.';
+    }
+    
+    return `❌ ${errorMessage}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      toast.error('Please fix the errors in the form');
+      return;
+    }
     
     setIsLoading(true);
     
@@ -86,25 +192,34 @@ export default function AdminLogin() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        let errorMessage = data.message || 'Login failed';
+        
+        if (response.status === 401) {
+          errorMessage = 'Invalid email or password';
+        } else if (response.status === 404) {
+          errorMessage = 'User account not found';
+        }
+        
+        throw new Error(errorMessage);
       }
 
       if (data.success) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         
-        toast.success('🎉 Login successful! Redirecting...');
+        toast.success('✅ Login successful! Redirecting to dashboard...');
         
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        router.push('/MainDashboard');
+        setTimeout(() => {
+          router.push('/MainDashboard');
+        }, 1500);
       } else {
         throw new Error(data.message || 'Login failed');
       }
       
     } catch (error) {
       console.error('Login error:', error);
-      toast.error(`❌ ${error.message}`);
+      const userFriendlyError = getErrorMessage(error);
+      toast.error(userFriendlyError, { autoClose: 6000 });
       setErrors({ submit: error.message });
     } finally {
       setIsLoading(false);
@@ -115,139 +230,105 @@ export default function AdminLogin() {
     {
       icon: FiUsers,
       title: 'Student Management',
-      description: 'Manage student records, attendance, and academic progress'
+      description: `Manage ${stats?.totalStudents || 0} student records`
     },
     {
       icon: FiBook,
       title: 'Academic Planning',
-      description: 'Create timetables, assign teachers, and manage curriculum'
+      description: `${stats?.activeAssignments || 0} active assignments`
     },
     {
-      icon: IoStatsChartOutline,
+      icon: FiBarChart2,
       title: 'Analytics Dashboard',
-      description: 'Real-time insights and performance analytics'
+      description: 'Real-time performance insights'
     },
     {
       icon: FiDatabase,
       title: 'Data Management',
-      description: 'Secure storage and management of institutional data'
+      description: `${stats?.totalStaff || 0} staff members`
     }
   ];
 
-  const quickStats = [
-    { label: 'Active Students', value: '1,247', change: '+5.2%' },
-    { label: 'Teaching Staff', value: '58', change: '+2' },
-    { label: 'Classes Today', value: '42', change: 'On Schedule' },
-    { label: 'Pending Tasks', value: '12', change: '-3' }
-  ];
+  // Real quick stats from API data
+  const quickStats = stats ? [
+    { 
+      label: 'Active Students', 
+      value: stats.activeStudents.toLocaleString(),
+      description: `Total: ${stats.totalStudents} students`
+    },
+    { 
+      label: 'Teaching Staff', 
+      value: stats.totalStaff.toLocaleString(),
+      description: 'Faculty & administration'
+    },
+    { 
+      label: 'Classes Today', 
+      value: stats.classesToday.toString(),
+      description: 'Scheduled sessions'
+    },
+    { 
+      label: 'Pending Tasks', 
+      value: stats.pendingTasks.toString(),
+      description: 'Assignments & activities'
+    }
+  ] : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden">
+    <div className="min-h-screen bg-gray-50">
       <ToastContainer 
         position="top-right"
         autoClose={5000}
         hideProgressBar={false}
-        newestOnTop={false}
         closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
         pauseOnHover
-        theme="dark"
+        theme="light"
+        style={{ fontSize: '14px' }}
       />
       
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"
-          animate={{
-            x: [0, 100, 0],
-            y: [0, -50, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"
-          animate={{
-            x: [0, -100, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, delay: 2 }}
-        />
-        
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)`,
-            backgroundSize: '50px 50px'
-          }}></div>
-        </div>
-      </div>
-
-      <div className="relative min-h-screen flex items-center justify-center p-6">
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid lg:grid-cols-2 gap-12 items-stretch">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              className="flex justify-center"
-            >
-              <div className="w-full max-w-lg">
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 p-10 shadow-2xl h-full flex flex-col justify-center min-h-[700px]"
-                >
-                  <div className="text-center mb-10">
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-                      className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mb-6"
-                    >
-                      <FiShield className="text-white text-3xl" />
-                    </motion.div>
-                    <h1 className="text-4xl font-bold text-white mb-3">
-                      Admin Portal
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-8 items-stretch">
+            {/* Login Form */}
+            <div className="flex justify-center">
+              <div className="w-full max-w-md">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+                  <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-xl mb-4">
+                      <FiShield className="text-white text-2xl" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                      Katwanyaa High School
                     </h1>
-                    <p className="text-white/60 text-lg">
-                      Secure access to school management system
+                    <p className="text-gray-600">
+                      Admin Portal Login
                     </p>
                   </div>
 
-                  <form onSubmit={handleSubmit} className="space-y-8 flex-1 flex flex-col justify-center">
-                    <div className="space-y-3">
-                      <label className="flex items-center gap-3 text-white/80 text-base font-medium">
-                        <FiMail className="text-blue-400 text-lg" />
-                        Email
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div>
+                      <label className="block text-gray-700 text-sm font-medium mb-2">
+                        Email Address
                       </label>
-                      <div className="relative">
-                        <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className={`w-full bg-white/5 border ${
-                            errors.email ? 'border-red-400/50' : 'border-white/10'
-                          } rounded-xl px-5 py-4 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all text-lg`}
-                          placeholder="Enter your email"
-                          disabled={isLoading}
-                        />
-                        {errors.email && (
-                          <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-red-400 text-sm mt-2"
-                          >
-                            {errors.email}
-                          </motion.p>
-                        )}
-                      </div>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className={`w-full border ${
+                          errors.email ? 'border-red-500' : 'border-gray-300'
+                        } rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        placeholder="Enter your email"
+                        disabled={isLoading}
+                      />
+                      {errors.email && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.email}
+                        </p>
+                      )}
                     </div>
 
-                    <div className="space-y-3">
-                      <label className="flex items-center gap-3 text-white/80 text-base font-medium">
-                        <FiLock className="text-purple-400 text-lg" />
+                    <div>
+                      <label className="block text-gray-700 text-sm font-medium mb-2">
                         Password
                       </label>
                       <div className="relative">
@@ -256,9 +337,9 @@ export default function AdminLogin() {
                           name="password"
                           value={formData.password}
                           onChange={handleInputChange}
-                          className={`w-full bg-white/5 border ${
-                            errors.password ? 'border-red-400/50' : 'border-white/10'
-                          } rounded-xl px-5 py-4 pr-14 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all text-lg`}
+                          className={`w-full border ${
+                            errors.password ? 'border-red-500' : 'border-gray-300'
+                          } rounded-lg px-4 py-3 pr-12 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                           placeholder="Enter your password"
                           disabled={isLoading}
                         />
@@ -266,178 +347,158 @@ export default function AdminLogin() {
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           disabled={isLoading}
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors p-2 disabled:opacity-50"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 p-1"
                         >
-                          {showPassword ? <FiEyeOff className="text-xl" /> : <FiEye className="text-xl" />}
+                          {showPassword ? <FiEyeOff className="text-lg" /> : <FiEye className="text-lg" />}
                         </button>
-                        {errors.password && (
-                          <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-red-400 text-sm mt-2"
-                          >
-                            {errors.password}
-                          </motion.p>
-                        )}
                       </div>
-                    
+                      {errors.password && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.password}
+                        </p>
+                      )}
+                    </div>
+
                     <div className="flex items-center justify-between">
-                      <label className="flex items-center gap-3 text-white/60 text-base cursor-pointer">
+                      <label className="flex items-center gap-2 text-gray-700 text-sm cursor-pointer">
                         <input
                           type="checkbox"
                           name="rememberMe"
                           checked={formData.rememberMe}
                           onChange={handleInputChange}
                           disabled={isLoading}
-                          className="w-5 h-5 bg-white/5 border border-white/20 rounded focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50"
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
                         Remember me
                       </label>
                       <button
                         type="button"
                         disabled={isLoading}
-                        className="text-blue-400 hover:text-blue-300 text-base transition-colors disabled:opacity-50"
+                        className="text-blue-600 text-sm hover:text-blue-800 disabled:opacity-50"
                       >
                         Forgot password?
                       </button>
                     </div>
-                    </div>
 
-                    <motion.button
+                    <button
                       type="submit"
                       disabled={isLoading}
-                      whileHover={{ scale: isLoading ? 1 : 1.02 }}
-                      whileTap={{ scale: isLoading ? 1 : 0.98 }}
-                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 rounded-xl font-semibold text-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-4"
+                      className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium text-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {isLoading ? (
                         <>
-                          <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                           Signing In...
                         </>
                       ) : (
                         <>
-                          <FiLogIn className="text-2xl" />
+                          <FiLogIn className="text-xl" />
                           Sign In
                         </>
                       )}
-                    </motion.button>
+                    </button>
 
                     {errors.submit && (
-                      <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-red-400 text-center text-base bg-red-400/10 py-3 rounded-lg mt-4"
-                      >
+                      <p className="text-red-500 text-center text-sm bg-red-50 py-2 rounded-lg">
                         {errors.submit}
-                      </motion.p>
+                      </p>
                     )}
                   </form>
 
-                  <div className="mt-8 p-5 bg-white/5 rounded-xl border border-white/10">
-                    <div className="flex items-center gap-4 text-white/60 text-base">
-                      <FiShield className="text-green-400 flex-shrink-0 text-xl" />
-                      <span>Your login is secured with end-to-end encryption</span>
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-3 text-blue-700 text-sm">
+                      <FiShield className="text-green-600 flex-shrink-0" />
+                      <span>Your login is secured with encryption</span>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="space-y-8"
-            >
-              <div className="text-white">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6 border border-white/20"
-                >
-                  <IoRocketOutline className="text-blue-400" />
-                  <span className="text-sm font-medium">Katwanyaa High School Admin</span>
-                </motion.div>
+            {/* Right Panel - Information */}
+            <div className="space-y-6">
+              <div className="text-gray-800">
+                <div className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2 mb-4">
+                  <FiUser className="text-blue-600" />
+                  <span className="text-sm font-medium">School Administration</span>
+                </div>
 
-                <h2 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
-                  Manage Your
-                  <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                    Institution
+                <h2 className="text-3xl font-bold mb-4">
+                  Manage Your School
+                  <span className="block text-blue-600">
+                    Efficiently
                   </span>
                 </h2>
-                <p className="text-xl text-white/80 mb-8 leading-relaxed">
-                  Access powerful tools to streamline academic operations, 
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Access comprehensive tools to manage academic operations, 
                   monitor student progress, and enhance institutional efficiency.
                 </p>
               </div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="grid grid-cols-2 gap-4"
-              >
-                {quickStats.map((stat, index) => (
-                  <div
-                    key={stat.label}
-                    className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20"
-                  >
-                    <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
-                    <div className="text-white/60 text-sm">{stat.label}</div>
-                    <div className="text-green-400 text-xs mt-1">{stat.change}</div>
-                  </div>
-                ))}
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 }}
-                className="grid sm:grid-cols-2 gap-4"
-              >
-                {adminFeatures.map((feature, index) => (
-                  <motion.div
-                    key={feature.title}
-                    whileHover={{ y: -5, backgroundColor: 'rgba(255,255,255,0.15)' }}
-                    className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 cursor-pointer group transition-all duration-300"
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2 bg-white/10 rounded-lg group-hover:scale-110 transition-transform duration-300">
-                        <feature.icon className="text-blue-400 text-xl" />
+              {/* Quick Stats - Now with Real Data */}
+              <div className="grid grid-cols-2 gap-4">
+                {statsLoading ? (
+                  // Loading skeleton
+                  Array.from({ length: 4 }).map((_, index) => (
+                    <div key={index} className="bg-white rounded-lg shadow border border-gray-200 p-4">
+                      <div className="animate-pulse">
+                        <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                       </div>
-                      <h3 className="text-white font-semibold text-sm">{feature.title}</h3>
                     </div>
-                    <p className="text-white/60 text-xs leading-relaxed">
+                  ))
+                ) : (
+                  quickStats.map((stat, index) => (
+                    <div
+                      key={stat.label}
+                      className="bg-white rounded-lg shadow border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="text-xl font-bold text-gray-800 mb-1">{stat.value}</div>
+                      <div className="text-gray-600 text-sm font-medium">{stat.label}</div>
+                      <div className="text-gray-500 text-xs mt-1">{stat.description}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Features with Real Data */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                {adminFeatures.map((feature, index) => (
+                  <div
+                    key={feature.title}
+                    className="bg-white rounded-lg shadow border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <feature.icon className="text-blue-600 text-lg" />
+                      </div>
+                      <h3 className="text-gray-800 font-semibold text-sm">{feature.title}</h3>
+                    </div>
+                    <p className="text-gray-600 text-xs leading-relaxed">
                       {feature.description}
                     </p>
-                  </motion.div>
+                  </div>
                 ))}
-              </motion.div>
+              </div>
 
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-                className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-md rounded-2xl p-6 border border-white/20"
-              >
-                <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                  <FiSettings className="text-blue-400" />
+              {/* Contact Info */}
+              <div className="bg-blue-50 rounded-lg p-5 border border-blue-200">
+                <h3 className="text-gray-800 font-semibold mb-3 flex items-center gap-2">
+                  <FiSettings className="text-blue-600" />
                   Need Help?
                 </h3>
-                <div className="space-y-2 text-white/60 text-sm">
+                <div className="space-y-2 text-gray-600 text-sm">
                   <div className="flex items-center gap-2">
-                    <FiMail className="text-blue-400" />
+                    <FiMail className="text-blue-600" />
                     <span>support@katwanyaa.ac.ke</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <FiPhone className="text-green-400" />
+                    <FiPhone className="text-green-600" />
                     <span>+254 700 000 000</span>
                   </div>
                 </div>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

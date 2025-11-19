@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { 
@@ -63,151 +62,149 @@ const StudentCouncil = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
 
-const [selectedForm, setSelectedForm] = useState('all');
-const [selectedStream, setSelectedStream] = useState('all');
-const [filteredStudents, setFilteredStudents] = useState([]);
+  const [selectedForm, setSelectedForm] = useState('all');
+  const [selectedStream, setSelectedStream] = useState('all');
+  const [filteredStudents, setFilteredStudents] = useState([]);
 
-// Replace the existing councilPositions array with this updated version:
-const councilPositions = [
-  // Presidency
-  { value: 'President', label: 'President of the School', department: 'Presidency', level: 1 },
-  { value: 'DeputyPresident', label: 'Deputy President', department: 'Presidency', level: 2 },
-  
-  // School Leadership
-  { value: 'SchoolCaptain', label: 'School Captain', department: 'General', level: 1 },
-  { value: 'DeputyCaptain', label: 'Deputy Captain', department: 'General', level: 2 },
-  
-  // Academic Department
-  { value: 'AcademicsSecretary', label: 'Academics Secretary', department: 'Academics', level: 1 },
-  { value: 'Assistant', label: 'Academic Assistant', department: 'Academics', level: 2 },
-  
-  // Sports Department
-  { value: 'SportsSecretary', label: 'Sports Secretary', department: 'Sports', level: 1 },
-  { value: 'Assistant', label: 'Sports Assistant', department: 'Sports', level: 2 },
-  
-  // Entertainment Department
-  { value: 'EntertainmentSecretary', label: 'Entertainment Secretary', department: 'Entertainment', level: 1 },
-  { value: 'Assistant', label: 'Entertainment Assistant', department: 'Entertainment', level: 2 },
-  
-  // Cleaning Department
-  { value: 'CleaningSecretary', label: 'Cleaning Secretary', department: 'Cleaning', level: 1 },
-  { value: 'Assistant', label: 'Cleaning Assistant', department: 'Cleaning', level: 2 },
-  
-  // Meals Department
-  { value: 'MealsSecretary', label: 'Meals Secretary', department: 'Meals', level: 1 },
-  { value: 'Assistant', label: 'Meals Assistant', department: 'Meals', level: 2 },
-  
-  // Discipline Department
-  { value: 'DisciplineSecretary', label: 'Discipline Secretary', department: 'Discipline', level: 1 },
-  { value: 'Assistant', label: 'Discipline Assistant', department: 'Discipline', level: 2 },
-  
-  // Health Department
-  { value: 'HealthSecretary', label: 'Health Secretary', department: 'Health', level: 1 },
-  { value: 'Assistant', label: 'Health Assistant', department: 'Health', level: 2 },
-  
-  // Library Department
-  { value: 'LibrarySecretary', label: 'Library Secretary', department: 'Library', level: 1 },
-  { value: 'Assistant', label: 'Library Assistant', department: 'Library', level: 2 },
-  
-  // Class Leadership Positions
-  { value: 'ClassRepresentative', label: 'Class Representative', department: 'Class', level: 3, requiresClass: true },
-  { value: 'ClassAssistant', label: 'Class Assistant', department: 'Class', level: 3, requiresClass: true },
-  
-  // Other Departments
-  { value: 'BellRinger', label: 'Bell Ringer', department: 'General', level: 3 },
-  { value: 'TransportSecretary', label: 'Transport Secretary', department: 'Transport', level: 1 },
-  { value: 'EnvironmentSecretary', label: 'Environment Secretary', department: 'Environment', level: 1 },
-  { value: 'SpiritualSecretary', label: 'Spiritual Secretary', department: 'Spiritual', level: 1 },
-  { value: 'TechnologySecretary', label: 'Technology Secretary', department: 'Technology', level: 1 },
-];
+  // Replace the existing councilPositions array with this updated version:
+  const councilPositions = [
+    // Presidency
+    { value: 'President', label: 'President of the School', department: 'Presidency', level: 1 },
+    { value: 'DeputyPresident', label: 'Deputy President', department: 'Presidency', level: 2 },
+    
+    // School Leadership
+    { value: 'SchoolCaptain', label: 'School Captain', department: 'General', level: 1 },
+    { value: 'DeputyCaptain', label: 'Deputy Captain', department: 'General', level: 2 },
+    
+    // Academic Department
+    { value: 'AcademicsSecretary', label: 'Academics Secretary', department: 'Academics', level: 1 },
+    { value: 'Assistant', label: 'Academic Assistant', department: 'Academics', level: 2 },
+    
+    // Sports Department
+    { value: 'SportsSecretary', label: 'Sports Secretary', department: 'Sports', level: 1 },
+    { value: 'Assistant', label: 'Sports Assistant', department: 'Sports', level: 2 },
+    
+    // Entertainment Department
+    { value: 'EntertainmentSecretary', label: 'Entertainment Secretary', department: 'Entertainment', level: 1 },
+    { value: 'Assistant', label: 'Entertainment Assistant', department: 'Entertainment', level: 2 },
+    
+    // Cleaning Department
+    { value: 'CleaningSecretary', label: 'Cleaning Secretary', department: 'Cleaning', level: 1 },
+    { value: 'Assistant', label: 'Cleaning Assistant', department: 'Cleaning', level: 2 },
+    
+    // Meals Department
+    { value: 'MealsSecretary', label: 'Meals Secretary', department: 'Meals', level: 1 },
+    { value: 'Assistant', label: 'Meals Assistant', department: 'Meals', level: 2 },
+    
+    // Discipline Department
+    { value: 'DisciplineSecretary', label: 'Discipline Secretary', department: 'Discipline', level: 1 },
+    { value: 'Assistant', label: 'Discipline Assistant', department: 'Discipline', level: 2 },
+    
+    // Health Department
+    { value: 'HealthSecretary', label: 'Health Secretary', department: 'Health', level: 1 },
+    { value: 'Assistant', label: 'Health Assistant', department: 'Health', level: 2 },
+    
+    // Library Department
+    { value: 'LibrarySecretary', label: 'Library Secretary', department: 'Library', level: 1 },
+    { value: 'Assistant', label: 'Library Assistant', department: 'Library', level: 2 },
+    
+    // Class Leadership Positions
+    { value: 'ClassRepresentative', label: 'Class Representative', department: 'Class', level: 3, requiresClass: true },
+    { value: 'ClassAssistant', label: 'Class Assistant', department: 'Class', level: 3, requiresClass: true },
+    
+    // Other Departments
+    { value: 'BellRinger', label: 'Bell Ringer', department: 'General', level: 3 },
+    { value: 'TransportSecretary', label: 'Transport Secretary', department: 'Transport', level: 1 },
+    { value: 'EnvironmentSecretary', label: 'Environment Secretary', department: 'Environment', level: 1 },
+    { value: 'SpiritualSecretary', label: 'Spiritual Secretary', department: 'Spiritual', level: 1 },
+    { value: 'TechnologySecretary', label: 'Technology Secretary', department: 'Technology', level: 1 },
+  ];
 
-// Add this to your councilDepartments array:
-const councilDepartments = [
-  { value: 'Presidency', label: 'Presidency', color: 'from-purple-500 to-pink-600', icon: FiAward },
-  { value: 'Academics', label: 'Academics', color: 'from-blue-500 to-cyan-600', icon: FiBook },
-  { value: 'Sports', label: 'Sports', color: 'from-green-500 to-emerald-600', icon: FiActivity },
-  { value: 'Entertainment', label: 'Entertainment', color: 'from-yellow-500 to-orange-600', icon: FiMusic },
-  { value: 'Cleaning', label: 'Cleaning', color: 'from-indigo-500 to-purple-600', icon: FiHome },
-  { value: 'Meals', label: 'Meals', color: 'from-red-500 to-pink-600', icon: FiCoffee },
-  { value: 'Discipline', label: 'Discipline', color: 'from-gray-500 to-gray-700', icon: FiShield },
-  { value: 'Health', label: 'Health', color: 'from-pink-500 to-rose-600', icon: FiHeart },
-  { value: 'Library', label: 'Library', color: 'from-teal-500 to-green-600', icon: FiBook },
-  { value: 'Transport', label: 'Transport', color: 'from-orange-500 to-red-600', icon: FiTruck },
-  { value: 'Environment', label: 'Environment', color: 'from-lime-500 to-green-600', icon: FiHome },
-  { value: 'Spiritual', label: 'Spiritual', color: 'from-violet-500 to-purple-600', icon: FiCloud },
-  { value: 'Technology', label: 'Technology', color: 'from-cyan-500 to-blue-600', icon: FiCpu },
-  { value: 'Class', label: 'Class Leadership', color: 'from-amber-500 to-orange-600', icon: FiUsers },
-  { value: 'General', label: 'General', color: 'from-slate-500 to-gray-600', icon: FiUsers },
-];
+  // Add this to your councilDepartments array:
+  const councilDepartments = [
+    { value: 'Presidency', label: 'Presidency', color: 'from-purple-500 to-pink-600', icon: FiAward },
+    { value: 'Academics', label: 'Academics', color: 'from-blue-500 to-cyan-600', icon: FiBook },
+    { value: 'Sports', label: 'Sports', color: 'from-green-500 to-emerald-600', icon: FiActivity },
+    { value: 'Entertainment', label: 'Entertainment', color: 'from-yellow-500 to-orange-600', icon: FiMusic },
+    { value: 'Cleaning', label: 'Cleaning', color: 'from-indigo-500 to-purple-600', icon: FiHome },
+    { value: 'Meals', label: 'Meals', color: 'from-red-500 to-pink-600', icon: FiCoffee },
+    { value: 'Discipline', label: 'Discipline', color: 'from-gray-500 to-gray-700', icon: FiShield },
+    { value: 'Health', label: 'Health', color: 'from-pink-500 to-rose-600', icon: FiHeart },
+    { value: 'Library', label: 'Library', color: 'from-teal-500 to-green-600', icon: FiBook },
+    { value: 'Transport', label: 'Transport', color: 'from-orange-500 to-red-600', icon: FiTruck },
+    { value: 'Environment', label: 'Environment', color: 'from-lime-500 to-green-600', icon: FiHome },
+    { value: 'Spiritual', label: 'Spiritual', color: 'from-violet-500 to-purple-600', icon: FiCloud },
+    { value: 'Technology', label: 'Technology', color: 'from-cyan-500 to-blue-600', icon: FiCpu },
+    { value: 'Class', label: 'Class Leadership', color: 'from-amber-500 to-orange-600', icon: FiUsers },
+    { value: 'General', label: 'General', color: 'from-slate-500 to-gray-600', icon: FiUsers },
+  ];
+
   const statusOptions = [
     { value: 'Active', label: 'Active', color: 'from-green-500 to-emerald-600' },
     { value: 'Inactive', label: 'Inactive', color: 'from-gray-500 to-gray-600' },
     { value: 'Graduated', label: 'Graduated', color: 'from-blue-500 to-cyan-600' }
   ];
 
+  const [formData, setFormData] = useState({
+    position: '',
+    department: '',
+    startDate: '',
+    endDate: '',
+    responsibilities: '',
+    achievements: '',
+    status: 'Active',
+    form: '',
+    stream: ''
+  });
 
+  // Fetch council members
+  const fetchCouncilMembers = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/studentCouncil');
+      const result = await response.json();
 
-
-const [formData, setFormData] = useState({
-  position: '',
-  department: '',
-  startDate: '',
-  endDate: '',
-  responsibilities: '',
-  achievements: '',
-  status: 'Active',
-  form: '',
-  stream: ''
-});
-
-// Fetch council members
-const fetchCouncilMembers = async () => {
-  try {
-    setLoading(true);
-    // CHANGE THIS LINE:
-    const response = await fetch('/api/studentCouncil');
-    const result = await response.json();
-
-    if (result.success) {
-      setCouncilMembers(result.councilMembers);
-      setFilteredMembers(result.councilMembers);
-    } else {
-      throw new Error(result.error);
+      if (result.success) {
+        setCouncilMembers(result.councilMembers);
+        setFilteredMembers(result.councilMembers);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error fetching council members:', error);
+      toast.error('Failed to load council members');
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Error fetching council members:', error);
-    toast.error('Failed to load council members');
-  } finally {
-    setLoading(false);
-  }
-};
- // Search students
-const searchStudents = async (term) => {
-  if (!term.trim()) {
-    setStudents([]);
-    setFilteredStudents([]);
-    return;
-  }
+  };
 
-  try {
-    setSearchLoading(true);
-    const response = await fetch(`/api/student?action=search-students&search=${encodeURIComponent(term)}`);
-    const result = await response.json();
-
-    if (result.success) {
-      setStudents(result.students);
-      setFilteredStudents(result.students);
-      // Reset filters when new search is performed
-      setSelectedForm('all');
-      setSelectedStream('all');
+  // Search students
+  const searchStudents = async (term) => {
+    if (!term.trim()) {
+      setStudents([]);
+      setFilteredStudents([]);
+      return;
     }
-  } catch (error) {
-    console.error('Error searching students:', error);
-    toast.error('Failed to search students');
-  } finally {
-    setSearchLoading(false);
-  }
-};
+
+    try {
+      setSearchLoading(true);
+      const response = await fetch(`/api/student?action=search-students&search=${encodeURIComponent(term)}`);
+      const result = await response.json();
+
+      if (result.success) {
+        setStudents(result.students);
+        setFilteredStudents(result.students);
+        // Reset filters when new search is performed
+        setSelectedForm('all');
+        setSelectedStream('all');
+      }
+    } catch (error) {
+      console.error('Error searching students:', error);
+      toast.error('Failed to search students');
+    } finally {
+      setSearchLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchCouncilMembers();
@@ -239,33 +236,32 @@ const searchStudents = async (term) => {
     setCurrentPage(1);
   }, [selectedDepartment, selectedStatus, councilMembers]);
 
+  // Filter students based on search term, form, and stream
+  useEffect(() => {
+    let filtered = students;
 
-// Filter students based on search term, form, and stream
-useEffect(() => {
-  let filtered = students;
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(student =>
+        student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.admissionNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.form.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.stream.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
 
-  // Filter by search term
-  if (searchTerm) {
-    filtered = filtered.filter(student =>
-      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.admissionNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.form.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.stream.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }
+    // Filter by form
+    if (selectedForm !== 'all') {
+      filtered = filtered.filter(student => student.form === selectedForm);
+    }
 
-  // Filter by form
-  if (selectedForm !== 'all') {
-    filtered = filtered.filter(student => student.form === selectedForm);
-  }
+    // Filter by stream
+    if (selectedStream !== 'all') {
+      filtered = filtered.filter(student => student.stream === selectedStream);
+    }
 
-  // Filter by stream
-  if (selectedStream !== 'all') {
-    filtered = filtered.filter(student => student.stream === selectedStream);
-  }
-
-  setFilteredStudents(filtered);
-}, [students, searchTerm, selectedForm, selectedStream]);
+    setFilteredStudents(filtered);
+  }, [students, searchTerm, selectedForm, selectedStream]);
 
   // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -325,65 +321,65 @@ useEffect(() => {
     </div>
   );
 
-const handleCreate = () => {
-  setFormData({
-    position: '',
-    department: '',
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: '',
-    responsibilities: '',
-    achievements: '',
-    status: 'Active',
-    form: '',
-    stream: ''
-  });
-  setEditingMember(null);
-  setSelectedStudent(null);
-  setImagePreview(null);
-  setImageFile(null);
-  setShowStudentSearch(true);
-};
+  const handleCreate = () => {
+    setFormData({
+      position: '',
+      department: '',
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: '',
+      responsibilities: '',
+      achievements: '',
+      status: 'Active',
+      form: '',
+      stream: ''
+    });
+    setEditingMember(null);
+    setSelectedStudent(null);
+    setImagePreview(null);
+    setImageFile(null);
+    setShowStudentSearch(true);
+  };
 
-// Update your handleEdit function:
-const handleEdit = (member) => {
-  setFormData({
-    position: member.position,
-    department: member.department,
-    startDate: member.startDate.split('T')[0],
-    endDate: member.endDate ? member.endDate.split('T')[0] : '',
-    responsibilities: member.responsibilities,
-    achievements: member.achievements || '',
-    status: member.status,
-    form: member.form || '',
-    stream: member.stream || ''
-  });
-  setEditingMember(member);
-  setSelectedStudent(member.student);
-  setImagePreview(member.image || null);
-  setImageFile(null);
-  setShowModal(true);
-};
+  // Update your handleEdit function:
+  const handleEdit = (member) => {
+    setFormData({
+      position: member.position,
+      department: member.department,
+      startDate: member.startDate.split('T')[0],
+      endDate: member.endDate ? member.endDate.split('T')[0] : '',
+      responsibilities: member.responsibilities,
+      achievements: member.achievements || '',
+      status: member.status,
+      form: member.form || '',
+      stream: member.stream || ''
+    });
+    setEditingMember(member);
+    setSelectedStudent(member.student);
+    setImagePreview(member.image || null);
+    setImageFile(null);
+    setShowModal(true);
+  };
 
   const handleViewDetails = (member) => {
     setSelectedMember(member);
     setShowDetailModal(true);
   };
 
-const handleStudentSelect = (student) => {
-  setSelectedStudent(student);
-  
-  // Auto-populate form and stream for class positions if they match the current formData
-  if (formData.position && ['ClassRepresentative', 'ClassAssistant'].includes(formData.position)) {
-    setFormData(prev => ({
-      ...prev,
-      form: student.form,
-      stream: student.stream
-    }));
-  }
-  
-  setShowStudentSearch(false);
-  setShowModal(true);
-};
+  const handleStudentSelect = (student) => {
+    setSelectedStudent(student);
+    
+    // Auto-populate form and stream for class positions if they match the current formData
+    if (formData.position && ['ClassRepresentative', 'ClassAssistant'].includes(formData.position)) {
+      setFormData(prev => ({
+        ...prev,
+        form: student.form,
+        stream: student.stream
+      }));
+    }
+    
+    setShowStudentSearch(false);
+    setShowModal(true);
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -416,103 +412,105 @@ const handleStudentSelect = (student) => {
       fileInputRef.current.value = '';
     }
   };
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!selectedStudent) {
-    toast.error('Please select a student');
-    return;
-  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedStudent) {
+      toast.error('Please select a student');
+      return;
+    }
+    
     // Add validation for class positions
-  if (['ClassRepresentative', 'ClassAssistant'].includes(formData.position)) {
-    if (!formData.form || !formData.stream) {
-      toast.error('Form and stream are required for class positions');
-      return;
-    }
-    
-    // Validate that selected student is in the same class
-    if (selectedStudent && (selectedStudent.form !== formData.form || selectedStudent.stream !== formData.stream)) {
-      toast.error(`Selected student is in ${selectedStudent.form} ${selectedStudent.stream}, but position is for ${formData.form} ${formData.stream}`);
-      return;
-    }
-  }
-
-  try {
-    setSubmitting(true);
-    
-   
-   // In your handleSubmit function, update the formDataToSend section:
-const formDataToSend = new FormData();
-
-if (editingMember) {
-  formDataToSend.append('position', formData.position);
-  formDataToSend.append('department', formData.department);
-  formDataToSend.append('startDate', formData.startDate);
-  formDataToSend.append('endDate', formData.endDate || '');
-  formDataToSend.append('responsibilities', formData.responsibilities);
-  formDataToSend.append('achievements', formData.achievements || '');
-  formDataToSend.append('status', formData.status);
-  formDataToSend.append('form', formData.form || '');
-  formDataToSend.append('stream', formData.stream || '');
-  
-  if (!imagePreview && editingMember.image) {
-    formDataToSend.append('removeImage', 'true');
-  }
-} else {
-  formDataToSend.append('studentId', selectedStudent.id);
-  formDataToSend.append('position', formData.position);
-  formDataToSend.append('department', formData.department);
-  formDataToSend.append('startDate', formData.startDate);
-  formDataToSend.append('endDate', formData.endDate || '');
-  formDataToSend.append('responsibilities', formData.responsibilities);
-  formDataToSend.append('achievements', formData.achievements || '');
-  formDataToSend.append('status', 'Active');
-  formDataToSend.append('form', formData.form || '');
-  formDataToSend.append('stream', formData.stream || '');
-}
-    // Append image file if selected
-    if (imageFile) {
-      formDataToSend.append('image', imageFile);
+    if (['ClassRepresentative', 'ClassAssistant'].includes(formData.position)) {
+      if (!formData.form || !formData.stream) {
+        toast.error('Form and stream are required for class positions');
+        return;
+      }
+      
+      // Validate that selected student is in the same class
+      if (selectedStudent && (selectedStudent.form !== formData.form || selectedStudent.stream !== formData.stream)) {
+        toast.error(`Selected student is in ${selectedStudent.form} ${selectedStudent.stream}, but position is for ${formData.form} ${formData.stream}`);
+        return;
+      }
     }
 
-    const url = editingMember 
-      ? `/api/studentCouncil/${editingMember.id}`
-      : '/api/studentCouncil';
+    try {
+      setSubmitting(true);
+      
+      // In your handleSubmit function, update the formDataToSend section:
+      const formDataToSend = new FormData();
 
-    const method = editingMember ? 'PUT' : 'POST';
+      if (editingMember) {
+        formDataToSend.append('position', formData.position);
+        formDataToSend.append('department', formData.department);
+        formDataToSend.append('startDate', formData.startDate);
+        formDataToSend.append('endDate', formData.endDate || '');
+        formDataToSend.append('responsibilities', formData.responsibilities);
+        formDataToSend.append('achievements', formData.achievements || '');
+        formDataToSend.append('status', formData.status);
+        formDataToSend.append('form', formData.form || '');
+        formDataToSend.append('stream', formData.stream || '');
+        
+        if (!imagePreview && editingMember.image) {
+          formDataToSend.append('removeImage', 'true');
+        }
+      } else {
+        formDataToSend.append('studentId', selectedStudent.id);
+        formDataToSend.append('position', formData.position);
+        formDataToSend.append('department', formData.department);
+        formDataToSend.append('startDate', formData.startDate);
+        formDataToSend.append('endDate', formData.endDate || '');
+        formDataToSend.append('responsibilities', formData.responsibilities);
+        formDataToSend.append('achievements', formData.achievements || '');
+        formDataToSend.append('status', 'Active');
+        formDataToSend.append('form', formData.form || '');
+        formDataToSend.append('stream', formData.stream || '');
+      }
+      
+      // Append image file if selected
+      if (imageFile) {
+        formDataToSend.append('image', imageFile);
+      }
 
-    console.log('Sending data:', {
-      studentId: selectedStudent?.id,
-      position: formData.position,
-      department: formData.department,
-      startDate: formData.startDate,
-      status: formData.status
-    });
+      const url = editingMember 
+        ? `/api/studentCouncil/${editingMember.id}`
+        : '/api/studentCouncil';
 
-    const response = await fetch(url, {
-      method,
-      body: formDataToSend,
-      // Don't set Content-Type header for FormData - browser will set it automatically
-    });
+      const method = editingMember ? 'PUT' : 'POST';
 
-    const result = await response.json();
+      console.log('Sending data:', {
+        studentId: selectedStudent?.id,
+        position: formData.position,
+        department: formData.department,
+        startDate: formData.startDate,
+        status: formData.status
+      });
 
-    if (result.success) {
-      await fetchCouncilMembers();
-      setShowModal(false);
-      setSelectedStudent(null);
-      setImagePreview(null);
-      setImageFile(null);
-      toast.success(editingMember ? 'Council member updated successfully' : 'Council member added successfully');
-    } else {
-      throw new Error(result.error);
+      const response = await fetch(url, {
+        method,
+        body: formDataToSend,
+        // Don't set Content-Type header for FormData - browser will set it automatically
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        await fetchCouncilMembers();
+        setShowModal(false);
+        setSelectedStudent(null);
+        setImagePreview(null);
+        setImageFile(null);
+        toast.success(editingMember ? 'Council member updated successfully' : 'Council member added successfully');
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error saving council member:', error);
+      toast.error(error.message || 'Failed to save council member');
+    } finally {
+      setSubmitting(false);
     }
-  } catch (error) {
-    console.error('Error saving council member:', error);
-    toast.error(error.message || 'Failed to save council member');
-  } finally {
-    setSubmitting(false);
-  }
-};
+  };
 
   const handleDelete = async (member) => {
     if (confirm(`Are you sure you want to remove ${member.student.name} from the council?`)) {
@@ -552,17 +550,18 @@ if (editingMember) {
     return stat ? stat.color : 'from-gray-500 to-gray-600';
   };
 
-const getPositionLabel = (position, department, form = null, stream = null) => {
-  const pos = councilPositions.find(p => p.value === position && p.department === department);
-  const baseLabel = pos ? pos.label : position;
-  
-  // Add class info for class positions
-  if (form && stream && ['ClassRepresentative', 'ClassAssistant'].includes(position)) {
-    return `${baseLabel} - ${form} ${stream}`;
-  }
-  
-  return baseLabel;
-};
+  const getPositionLabel = (position, department, form = null, stream = null) => {
+    const pos = councilPositions.find(p => p.value === position && p.department === department);
+    const baseLabel = pos ? pos.label : position;
+    
+    // Add class info for class positions
+    if (form && stream && ['ClassRepresentative', 'ClassAssistant'].includes(position)) {
+      return `${baseLabel} - ${form} ${stream}`;
+    }
+    
+    return baseLabel;
+  };
+
   const StatusBadge = ({ status }) => (
     <span className={`bg-gradient-to-r ${getStatusColor(status)} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
       {status}
@@ -623,15 +622,13 @@ const getPositionLabel = (position, department, form = null, stream = null) => {
           </h1>
           <p className="text-gray-600 mt-2">Manage student leadership positions and departmental responsibilities</p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.95 }}
+        <button
           onClick={handleCreate}
           className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-lg shadow-purple-500/25"
         >
           <FiPlus className="text-lg" />
           Add Council Member
-        </motion.button>
+        </button>
       </div>
 
       {/* Stats */}
@@ -688,10 +685,9 @@ const getPositionLabel = (position, department, form = null, stream = null) => {
       {/* Department Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-7 gap-4">
         {councilDepartments.map(dept => (
-          <motion.div
+          <div
             key={dept.value}
-            whileHover={{ scale: 1.05, y: -2 }}
-            className={`bg-gradient-to-br ${dept.color} rounded-2xl p-4 text-white cursor-pointer ${
+            className={`bg-gradient-to-br ${dept.color} rounded-2xl p-4 text-white cursor-pointer transition-transform hover:scale-105 ${
               selectedDepartment === dept.value ? 'ring-2 ring-white ring-opacity-50' : ''
             }`}
             onClick={() => setSelectedDepartment(selectedDepartment === dept.value ? 'all' : dept.value)}
@@ -701,7 +697,7 @@ const getPositionLabel = (position, department, form = null, stream = null) => {
               <p className="text-xs font-semibold opacity-90">{dept.label}</p>
               <p className="text-lg font-bold mt-1">{getMembersByDepartment(dept.value)}</p>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
@@ -741,27 +737,23 @@ const getPositionLabel = (position, department, form = null, stream = null) => {
           </div>
 
           <div className="flex items-end">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button
               onClick={fetchCouncilMembers}
               className="bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 w-full justify-center"
             >
               <FiRefreshCw className="text-lg" />
               Refresh
-            </motion.button>
+            </button>
           </div>
 
           <div className="flex items-end">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button
               onClick={() => toast.info('Export feature coming soon')}
               className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 w-full justify-center"
             >
               <FiDownload className="text-lg" />
               Export CSV
-            </motion.button>
+            </button>
           </div>
         </div>
       </div>
@@ -785,10 +777,8 @@ const getPositionLabel = (position, department, form = null, stream = null) => {
                 const PositionIcon = getPositionIcon(member.position);
                 
                 return (
-                  <motion.tr
+                  <tr
                     key={member.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
                     className="hover:bg-gray-50 transition-colors cursor-pointer"
                     onClick={() => handleViewDetails(member)}
                   >
@@ -821,8 +811,8 @@ const getPositionLabel = (position, department, form = null, stream = null) => {
                         </div>
                         <div>
                           <div className="text-sm font-semibold text-gray-900">
-  {getPositionLabel(member.position, member.department, member.form, member.stream)}
-</div>
+                            {getPositionLabel(member.position, member.department, member.form, member.stream)}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -842,9 +832,7 @@ const getPositionLabel = (position, department, form = null, stream = null) => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center gap-2">
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleViewDetails(member);
@@ -853,10 +841,8 @@ const getPositionLabel = (position, department, form = null, stream = null) => {
                           title="View Details"
                         >
                           <FiEye className="text-sm" />
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                        </button>
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEdit(member);
@@ -865,10 +851,8 @@ const getPositionLabel = (position, department, form = null, stream = null) => {
                           title="Edit"
                         >
                           <FiEdit className="text-sm" />
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                        </button>
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDelete(member);
@@ -877,10 +861,10 @@ const getPositionLabel = (position, department, form = null, stream = null) => {
                           title="Delete"
                         >
                           <FiTrash2 className="text-sm" />
-                        </motion.button>
+                        </button>
                       </div>
                     </td>
-                  </motion.tr>
+                  </tr>
                 );
               })}
             </tbody>
@@ -902,582 +886,541 @@ const getPositionLabel = (position, department, form = null, stream = null) => {
           <Pagination />
         </div>
       )}
-{/* Student Search Modal */}
-<AnimatePresence>
-  {showStudentSearch && (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-      onClick={() => setShowStudentSearch(false)}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-800">Select Student for Council</h2>
-            <button
-              onClick={() => setShowStudentSearch(false)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <FiX className="text-xl text-gray-600" />
-            </button>
-          </div>
-        </div>
 
-        <div className="p-6">
-          <div className="relative mb-4">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search students by name, admission number, form, or stream..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
-
-          {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Filter by Form
-              </label>
-              <select
-                value={selectedForm}
-                onChange={(e) => setSelectedForm(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                <option value="all">All Forms</option>
-                <option value="Form 1">Form 1</option>
-                <option value="Form 2">Form 2</option>
-                <option value="Form 3">Form 3</option>
-                <option value="Form 4">Form 4</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Filter by Stream
-              </label>
-              <select
-                value={selectedStream}
-                onChange={(e) => setSelectedStream(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                <option value="all">All Streams</option>
-                <option value="East">East</option>
-                <option value="West">West</option>
-                <option value="North">North</option>
-                <option value="South">South</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {searchLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
-                <p className="text-gray-500 mt-2">Searching students...</p>
-              </div>
-            ) : filteredStudents.length > 0 ? (
-              filteredStudents.map((student) => (
-                <motion.div
-                  key={student.id}
-                  whileHover={{ scale: 1.02 }}
-                  className="flex items-center gap-4 p-4 border border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all"
-                  onClick={() => handleStudentSelect(student)}
+      {/* Student Search Modal */}
+      {showStudentSearch && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-800">Select Student for Council</h2>
+                <button
+                  onClick={() => setShowStudentSearch(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold">
-                    {student.name.charAt(0)}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800">{student.name}</h3>
-                    <p className="text-sm text-gray-600">{student.admissionNumber}</p>
-                    <p className="text-sm text-gray-500">{student.form} {student.stream} • {student.gender}</p>
-                    <p className="text-xs text-gray-400 mt-1">Performance: {student.academicPerformance}</p>
-                  </div>
-                  <FiCheck className="text-green-500 text-xl" />
-                </motion.div>
-              ))
-            ) : searchTerm || selectedForm !== 'all' || selectedStream !== 'all' ? (
-              <div className="text-center py-8">
-                <FiUser className="mx-auto text-4xl text-gray-400 mb-4" />
-                <p className="text-gray-500">No students found matching your criteria</p>
-                <p className="text-sm text-gray-400 mt-1">Try adjusting your search or filters</p>
+                  <FiX className="text-xl text-gray-600" />
+                </button>
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <FiSearch className="mx-auto text-4xl text-gray-400 mb-4" />
-                <p className="text-gray-500">Search for students to add to council</p>
+            </div>
+
+            <div className="p-6">
+              <div className="relative mb-4">
+                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search students by name, admission number, form, or stream..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
               </div>
-            )}
+
+              {/* Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Filter by Form
+                  </label>
+                  <select
+                    value={selectedForm}
+                    onChange={(e) => setSelectedForm(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="all">All Forms</option>
+                    <option value="Form 1">Form 1</option>
+                    <option value="Form 2">Form 2</option>
+                    <option value="Form 3">Form 3</option>
+                    <option value="Form 4">Form 4</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Filter by Stream
+                  </label>
+                  <select
+                    value={selectedStream}
+                    onChange={(e) => setSelectedStream(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="all">All Streams</option>
+                    <option value="East">East</option>
+                    <option value="West">West</option>
+                    <option value="North">North</option>
+                    <option value="South">South</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {searchLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                    <p className="text-gray-500 mt-2">Searching students...</p>
+                  </div>
+                ) : filteredStudents.length > 0 ? (
+                  filteredStudents.map((student) => (
+                    <div
+                      key={student.id}
+                      className="flex items-center gap-4 p-4 border border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all hover:scale-[1.02]"
+                      onClick={() => handleStudentSelect(student)}
+                    >
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold">
+                        {student.name.charAt(0)}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-800">{student.name}</h3>
+                        <p className="text-sm text-gray-600">{student.admissionNumber}</p>
+                        <p className="text-sm text-gray-500">{student.form} {student.stream} • {student.gender}</p>
+                        <p className="text-xs text-gray-400 mt-1">Performance: {student.academicPerformance}</p>
+                      </div>
+                      <FiCheck className="text-green-500 text-xl" />
+                    </div>
+                  ))
+                ) : searchTerm || selectedForm !== 'all' || selectedStream !== 'all' ? (
+                  <div className="text-center py-8">
+                    <FiUser className="mx-auto text-4xl text-gray-400 mb-4" />
+                    <p className="text-gray-500">No students found matching your criteria</p>
+                    <p className="text-sm text-gray-400 mt-1">Try adjusting your search or filters</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <FiSearch className="mx-auto text-4xl text-gray-400 mb-4" />
+                    <p className="text-gray-500">Search for students to add to council</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
+      )}
 
       {/* Council Member Detail Modal */}
-      <AnimatePresence>
-        {showDetailModal && selectedMember && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-            onClick={() => setShowDetailModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-800">Council Member Details</h2>
-                  <button
-                    onClick={() => setShowDetailModal(false)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <FiX className="text-xl text-gray-600" />
-                  </button>
-                </div>
+      {showDetailModal && selectedMember && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-800">Council Member Details</h2>
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <FiX className="text-xl text-gray-600" />
+                </button>
               </div>
+            </div>
 
-              <div className="p-6">
-                <div className="flex flex-col lg:flex-row gap-6 mb-6">
-                  <div className="flex-shrink-0">
-                    {selectedMember.image ? (
-                      <img 
-                        src={selectedMember.image} 
-                        alt={selectedMember.student.name}
-                        className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl object-cover border border-gray-200 shadow-lg"
-                      />
-                    ) : (
-                      <div className="w-24 h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-4xl font-bold shadow-lg">
-                        {selectedMember.student.name.charAt(0)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">{selectedMember.student.name}</h3>
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      <StatusBadge status={selectedMember.status} />
-                      <DepartmentBadge department={selectedMember.department} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-gray-600">Admission: <span className="font-semibold text-gray-800">{selectedMember.student.admissionNumber}</span></p>
-<p className="text-gray-600">Position: <span className="font-semibold text-gray-800">
-  {getPositionLabel(selectedMember.position, selectedMember.department, selectedMember.form, selectedMember.stream)}
-</span></p>                      </div>
-                      <div>
-                        <p className="text-gray-600">Class: <span className="font-semibold text-gray-800">{selectedMember.student.form} {selectedMember.student.stream}</span></p>
-                        <p className="text-gray-600">Gender: <span className="font-semibold text-gray-800">{selectedMember.student.gender}</span></p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Position Information */}
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <FiAward className="text-purple-500" />
-                        Position Information
-                      </h4>
-                      <div className="space-y-1 text-sm bg-gray-50 p-4 rounded-xl">
-                        <p><span className="font-medium">Department:</span> {selectedMember.department}</p>
-                        <p><span className="font-medium">Position:</span> {getPositionLabel(selectedMember.position, selectedMember.department)}</p>
-                        <p><span className="font-medium">Start Date:</span> {new Date(selectedMember.startDate).toLocaleDateString()}</p>
-                        <p><span className="font-medium">End Date:</span> {selectedMember.endDate ? new Date(selectedMember.endDate).toLocaleDateString() : 'Present'}</p>
-                        <p><span className="font-medium">Status:</span> {selectedMember.status}</p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <FiTarget className="text-purple-500" />
-                        Responsibilities
-                      </h4>
-                      <div className="text-sm bg-gray-50 p-4 rounded-xl">
-                        <p className="text-gray-800">{selectedMember.responsibilities}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Student Information */}
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <FiUser className="text-purple-500" />
-                        Student Information
-                      </h4>
-                      <div className="space-y-1 text-sm bg-gray-50 p-4 rounded-xl">
-                        <p><span className="font-medium">Name:</span> {selectedMember.student.name}</p>
-                        <p><span className="font-medium">Admission:</span> {selectedMember.student.admissionNumber}</p>
-                        <p><span className="font-medium">Class:</span> {selectedMember.student.form} {selectedMember.student.stream}</p>
-                        <p><span className="font-medium">Performance:</span> {selectedMember.student.academicPerformance}</p>
-                      </div>
-                    </div>
-
-                    {selectedMember.achievements && (
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                          <FiStar className="text-purple-500" />
-                          Achievements
-                        </h4>
-                        <div className="text-sm bg-gray-50 p-4 rounded-xl">
-                          <p className="text-gray-800">{selectedMember.achievements}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex gap-4 pt-6 mt-6 border-t border-gray-200">
-                  <button
-                    onClick={() => {
-                      setShowDetailModal(false);
-                      handleEdit(selectedMember);
-                    }}
-                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
-                  >
-                    Edit Member
-                  </button>
-                  <button
-                    onClick={() => setShowDetailModal(false)}
-                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Council Member Form Modal */}
-      <AnimatePresence>
-        {showModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-            onClick={() => !submitting && setShowModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-800">
-                    {editingMember ? 'Edit Council Member' : 'Add Council Member'}
-                  </h2>
-                  <button
-                    onClick={() => !submitting && setShowModal(false)}
-                    disabled={submitting}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    <FiX className="text-xl text-gray-600" />
-                  </button>
-                </div>
-              </div>
-
-              {selectedStudent && (
-                <div className="p-6 border-b border-gray-200 bg-gray-50">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
-                      {selectedStudent.name.charAt(0)}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800 text-lg">{selectedStudent.name}</h3>
-                      <p className="text-gray-600">{selectedStudent.admissionNumber}</p>
-                      <p className="text-gray-500">{selectedStudent.form} {selectedStudent.stream} • {selectedStudent.gender}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                {/* Image Upload Section */}
-                <div className="border border-gray-200 rounded-xl p-6">
-                  <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <FiCamera className="text-purple-500" />
-                    Council Member Photo
-                  </h3>
-                  
-                  <div className="flex flex-col items-center gap-4">
-                    {/* Image Preview */}
-                    <div className="relative">
-                      {imagePreview ? (
-                        <>
-                          <img 
-                            src={imagePreview} 
-                            alt="Preview" 
-                            className="w-32 h-32 rounded-xl object-cover border border-gray-200"
-                          />
-                          <button
-                            type="button"
-                            onClick={removeImage}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
-                          >
-                            <FiX className="text-sm" />
-                          </button>
-                        </>
-                      ) : editingMember?.image ? (
-                        <>
-                          <img 
-                            src={editingMember.image} 
-                            alt="Current" 
-                            className="w-32 h-32 rounded-xl object-cover border border-gray-200"
-                          />
-                          <button
-                            type="button"
-                            onClick={removeImage}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
-                          >
-                            <FiX className="text-sm" />
-                          </button>
-                        </>
-                      ) : (
-                        <div className="w-32 h-32 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400">
-                          <FiImage className="text-2xl mb-2" />
-                          <span className="text-xs text-center">No Image</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* File Input */}
-                    <div className="text-center">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/jpeg,image/jpg,image/png,image/webp"
-                        onChange={handleImageChange}
-                        className="hidden"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors"
-                      >
-                        <FiUpload className="text-sm" />
-                        {imagePreview || editingMember?.image ? 'Change Photo' : 'Upload Photo'}
-                      </button>
-                      <p className="text-xs text-gray-500 mt-2">
-                        JPEG, PNG, or WebP • Max 5MB
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Department *
-                    </label>
-                    <select
-                      required
-                      value={formData.department}
-                      onChange={(e) => {
-                        setFormData({ 
-                          ...formData, 
-                          department: e.target.value,
-                          position: '' // Reset position when department changes
-                        });
-                      }}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      <option value="">Select Department</option>
-                      {councilDepartments.map(dept => (
-                        <option key={dept.value} value={dept.value}>{dept.label}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Position *
-                    </label>
-                    <select
-                      required
-                      value={formData.position}
-                      onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                      disabled={!formData.department}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <option value="">Select Position</option>
-                      {formData.department && councilPositions
-                        .filter(pos => pos.department === formData.department)
-                        .map(position => (
-                          <option key={position.value} value={position.value}>
-                            {position.label}
-                          </option>
-                        ))
-                      }
-                    </select>
-                    {!formData.department && (
-                      <p className="text-xs text-gray-500 mt-1">Please select a department first</p>
-                    )}
-                  </div>
-
-                  {(formData.position === 'ClassRepresentative' || formData.position === 'ClassAssistant') && (
-  <>
-    <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
-        Form *
-      </label>
-      <select
-        required
-        value={formData.form}
-        onChange={(e) => setFormData({ ...formData, form: e.target.value })}
-        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-      >
-        <option value="">Select Form</option>
-        <option value="Form 1">Form 1</option>
-        <option value="Form 2">Form 2</option>
-        <option value="Form 3">Form 3</option>
-        <option value="Form 4">Form 4</option>
-      </select>
-    </div>
-
-    <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
-        Stream *
-      </label>
-      <select
-        required
-        value={formData.stream}
-        onChange={(e) => setFormData({ ...formData, stream: e.target.value })}
-        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-      >
-        <option value="">Select Stream</option>
-        <option value="East">East</option>
-        <option value="West">West</option>
-        <option value="North">North</option>
-        <option value="South">South</option>
-      </select>
-    </div>
-  </>
-)}
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Start Date *
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      value={formData.startDate}
-                      onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            <div className="p-6">
+              <div className="flex flex-col lg:flex-row gap-6 mb-6">
+                <div className="flex-shrink-0">
+                  {selectedMember.image ? (
+                    <img 
+                      src={selectedMember.image} 
+                      alt={selectedMember.student.name}
+                      className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl object-cover border border-gray-200 shadow-lg"
                     />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      End Date (Optional)
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.endDate}
-                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div className="lg:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Responsibilities *
-                    </label>
-                    <textarea
-                      required
-                      value={formData.responsibilities}
-                      onChange={(e) => setFormData({ ...formData, responsibilities: e.target.value })}
-                      rows="3"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Describe the key responsibilities for this position..."
-                    />
-                  </div>
-
-                  <div className="lg:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Achievements (Optional)
-                    </label>
-                    <textarea
-                      value={formData.achievements}
-                      onChange={(e) => setFormData({ ...formData, achievements: e.target.value })}
-                      rows="2"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Notable achievements or qualifications..."
-                    />
-                  </div>
-
-                  {editingMember && (
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Status
-                      </label>
-                      <select
-                        value={formData.status}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      >
-                        {statusOptions.map(status => (
-                          <option key={status.value} value={status.value}>{status.label}</option>
-                        ))}
-                      </select>
+                  ) : (
+                    <div className="w-24 h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-4xl font-bold shadow-lg">
+                      {selectedMember.student.name.charAt(0)}
                     </div>
                   )}
                 </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-gray-800 mb-2">{selectedMember.student.name}</h3>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    <StatusBadge status={selectedMember.status} />
+                    <DepartmentBadge department={selectedMember.department} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-600">Admission: <span className="font-semibold text-gray-800">{selectedMember.student.admissionNumber}</span></p>
+                      <p className="text-gray-600">Position: <span className="font-semibold text-gray-800">
+                        {getPositionLabel(selectedMember.position, selectedMember.department, selectedMember.form, selectedMember.stream)}
+                      </span></p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Class: <span className="font-semibold text-gray-800">{selectedMember.student.form} {selectedMember.student.stream}</span></p>
+                      <p className="text-gray-600">Gender: <span className="font-semibold text-gray-800">{selectedMember.student.gender}</span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    disabled={submitting}
-                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {submitting ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Position Information */}
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                      <FiAward className="text-purple-500" />
+                      Position Information
+                    </h4>
+                    <div className="space-y-1 text-sm bg-gray-50 p-4 rounded-xl">
+                      <p><span className="font-medium">Department:</span> {selectedMember.department}</p>
+                      <p><span className="font-medium">Position:</span> {getPositionLabel(selectedMember.position, selectedMember.department)}</p>
+                      <p><span className="font-medium">Start Date:</span> {new Date(selectedMember.startDate).toLocaleDateString()}</p>
+                      <p><span className="font-medium">End Date:</span> {selectedMember.endDate ? new Date(selectedMember.endDate).toLocaleDateString() : 'Present'}</p>
+                      <p><span className="font-medium">Status:</span> {selectedMember.status}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                      <FiTarget className="text-purple-500" />
+                      Responsibilities
+                    </h4>
+                    <div className="text-sm bg-gray-50 p-4 rounded-xl">
+                      <p className="text-gray-800">{selectedMember.responsibilities}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Student Information */}
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                      <FiUser className="text-purple-500" />
+                      Student Information
+                    </h4>
+                    <div className="space-y-1 text-sm bg-gray-50 p-4 rounded-xl">
+                      <p><span className="font-medium">Name:</span> {selectedMember.student.name}</p>
+                      <p><span className="font-medium">Admission:</span> {selectedMember.student.admissionNumber}</p>
+                      <p><span className="font-medium">Class:</span> {selectedMember.student.form} {selectedMember.student.stream}</p>
+                      <p><span className="font-medium">Performance:</span> {selectedMember.student.academicPerformance}</p>
+                    </div>
+                  </div>
+
+                  {selectedMember.achievements && (
+                    <div>
+                      <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <FiStar className="text-purple-500" />
+                        Achievements
+                      </h4>
+                      <div className="text-sm bg-gray-50 p-4 rounded-xl">
+                        <p className="text-gray-800">{selectedMember.achievements}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-6 mt-6 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    handleEdit(selectedMember);
+                  }}
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+                >
+                  Edit Member
+                </button>
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Council Member Form Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  {editingMember ? 'Edit Council Member' : 'Add Council Member'}
+                </h2>
+                <button
+                  onClick={() => !submitting && setShowModal(false)}
+                  disabled={submitting}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <FiX className="text-xl text-gray-600" />
+                </button>
+              </div>
+            </div>
+
+            {selectedStudent && (
+              <div className="p-6 border-b border-gray-200 bg-gray-50">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                    {selectedStudent.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800 text-lg">{selectedStudent.name}</h3>
+                    <p className="text-gray-600">{selectedStudent.admissionNumber}</p>
+                    <p className="text-gray-500">{selectedStudent.form} {selectedStudent.stream} • {selectedStudent.gender}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              {/* Image Upload Section */}
+              <div className="border border-gray-200 rounded-xl p-6">
+                <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <FiCamera className="text-purple-500" />
+                  Council Member Photo
+                </h3>
+                
+                <div className="flex flex-col items-center gap-4">
+                  {/* Image Preview */}
+                  <div className="relative">
+                    {imagePreview ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        {editingMember ? 'Updating...' : 'Adding...'}
+                        <img 
+                          src={imagePreview} 
+                          alt="Preview" 
+                          className="w-32 h-32 rounded-xl object-cover border border-gray-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={removeImage}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                        >
+                          <FiX className="text-sm" />
+                        </button>
+                      </>
+                    ) : editingMember?.image ? (
+                      <>
+                        <img 
+                          src={editingMember.image} 
+                          alt="Current" 
+                          className="w-32 h-32 rounded-xl object-cover border border-gray-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={removeImage}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                        >
+                          <FiX className="text-sm" />
+                        </button>
                       </>
                     ) : (
-                      editingMember ? 'Update Member' : 'Add to Council'
+                      <div className="w-32 h-32 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400">
+                        <FiImage className="text-2xl mb-2" />
+                        <span className="text-xs text-center">No Image</span>
+                      </div>
                     )}
-                  </button>
+                  </div>
+
+                  {/* File Input */}
+                  <div className="text-center">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors"
+                    >
+                      <FiUpload className="text-sm" />
+                      {imagePreview || editingMember?.image ? 'Change Photo' : 'Upload Photo'}
+                    </button>
+                    <p className="text-xs text-gray-500 mt-2">
+                      JPEG, PNG, or WebP • Max 5MB
+                    </p>
+                  </div>
                 </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Department *
+                  </label>
+                  <select
+                    required
+                    value={formData.department}
+                    onChange={(e) => {
+                      setFormData({ 
+                        ...formData, 
+                        department: e.target.value,
+                        position: '' // Reset position when department changes
+                      });
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="">Select Department</option>
+                    {councilDepartments.map(dept => (
+                      <option key={dept.value} value={dept.value}>{dept.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Position *
+                  </label>
+                  <select
+                    required
+                    value={formData.position}
+                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                    disabled={!formData.department}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Select Position</option>
+                    {formData.department && councilPositions
+                      .filter(pos => pos.department === formData.department)
+                      .map(position => (
+                        <option key={position.value} value={position.value}>
+                          {position.label}
+                        </option>
+                      ))
+                    }
+                  </select>
+                  {!formData.department && (
+                    <p className="text-xs text-gray-500 mt-1">Please select a department first</p>
+                  )}
+                </div>
+
+                {(formData.position === 'ClassRepresentative' || formData.position === 'ClassAssistant') && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Form *
+                      </label>
+                      <select
+                        required
+                        value={formData.form}
+                        onChange={(e) => setFormData({ ...formData, form: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="">Select Form</option>
+                        <option value="Form 1">Form 1</option>
+                        <option value="Form 2">Form 2</option>
+                        <option value="Form 3">Form 3</option>
+                        <option value="Form 4">Form 4</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Stream *
+                      </label>
+                      <select
+                        required
+                        value={formData.stream}
+                        onChange={(e) => setFormData({ ...formData, stream: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="">Select Stream</option>
+                        <option value="East">East</option>
+                        <option value="West">West</option>
+                        <option value="North">North</option>
+                        <option value="South">South</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Start Date *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    End Date (Optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Responsibilities *
+                  </label>
+                  <textarea
+                    required
+                    value={formData.responsibilities}
+                    onChange={(e) => setFormData({ ...formData, responsibilities: e.target.value })}
+                    rows="3"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Describe the key responsibilities for this position..."
+                  />
+                </div>
+
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Achievements (Optional)
+                  </label>
+                  <textarea
+                    value={formData.achievements}
+                    onChange={(e) => setFormData({ ...formData, achievements: e.target.value })}
+                    rows="2"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Notable achievements or qualifications..."
+                  />
+                </div>
+
+                {editingMember && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Status
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    >
+                      {statusOptions.map(status => (
+                        <option key={status.value} value={status.value}>{status.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  disabled={submitting}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {submitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      {editingMember ? 'Updating...' : 'Adding...'}
+                    </>
+                  ) : (
+                    editingMember ? 'Update Member' : 'Add to Council'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

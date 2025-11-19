@@ -557,7 +557,7 @@ export default function StudentAssignmentPortal() {
                       key={assignment.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                      transition={{ delay: index * 0.01 }}
                       whileHover={{ y: -5 }}
                       className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 hover:border-white/30 transition-all duration-300 group"
                     >
@@ -665,8 +665,8 @@ export default function StudentAssignmentPortal() {
 
                         <div className="flex lg:flex-col gap-2">
                           <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
                             onClick={() => setSelectedAssignment(assignment)}
                             className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2 whitespace-nowrap border border-white/20"
                           >
@@ -711,8 +711,8 @@ export default function StudentAssignmentPortal() {
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                       <motion.button
                         key={page}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.97 }}
                         onClick={() => handlePageChange(page)}
                         className={`w-10 h-10 rounded-xl font-semibold transition-all ${
                           currentPage === page
@@ -726,8 +726,8 @@ export default function StudentAssignmentPortal() {
                   </div>
 
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.005 }}
+                    whileTap={{ scale: 0.99 }}
                     onClick={nextPage}
                     disabled={currentPage === totalPages}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-colors"
@@ -746,7 +746,7 @@ export default function StudentAssignmentPortal() {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
+                  transition={{ delay: 0.05 }}
                   className="text-center mt-4 text-white/50 text-sm"
                 >
                   <FiChevronDown className="inline mr-2 animate-bounce" />
@@ -769,9 +769,9 @@ export default function StudentAssignmentPortal() {
             onClick={() => setSelectedAssignment(null)}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.98, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              exit={{ scale: 0.98, opacity: 0 }}
               className="bg-slate-800/95 backdrop-blur-md rounded-3xl border border-white/20 shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
@@ -894,8 +894,8 @@ export default function StudentAssignmentPortal() {
                         {assignmentFiles.map((file, index) => (
                           <motion.button
                             key={index}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                            whileHover={{ scale: 1.002 }}
+                            whileTap={{ scale: 0.99 }}
                             onClick={() => downloadFile(file)}
                             className="flex items-center justify-between gap-4 px-6 py-4 bg-white/5 text-white/80 rounded-xl hover:bg-white/10 transition-colors text-base border border-white/20 w-full text-left"
                           >
@@ -952,8 +952,8 @@ export default function StudentAssignmentPortal() {
 
                 <div className="flex gap-4 pt-6 border-t border-white/20">
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.005 }}
+                    whileTap={{ scale: 0.99 }}
                     onClick={() => downloadAllFiles(selectedAssignment)}
                     className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-4 rounded-2xl font-bold text-lg hover:shadow-xl transition-all flex items-center justify-center gap-3"
                   >
@@ -961,8 +961,8 @@ export default function StudentAssignmentPortal() {
                     Download All Files
                   </motion.button>
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.005 }}
+                    whileTap={{ scale: 0.99 }}
                     onClick={() => setSelectedAssignment(null)}
                     className="flex-1 bg-white/10 hover:bg-white/20 text-white py-4 rounded-2xl font-bold text-lg transition-colors flex items-center justify-center gap-3 border border-white/20"
                   >

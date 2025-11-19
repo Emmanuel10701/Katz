@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CircularProgress, Box } from '@mui/material';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { 
@@ -665,23 +666,27 @@ const handlePromotion = async () => {
     );
   };
 
-  // Loading Skeleton
-  const LoadingSkeleton = () => (
-    <div className="space-y-4">
-      {[...Array(5)].map((_, i) => (
-        <div key={i} className="animate-pulse bg-white rounded-2xl p-6 shadow-lg border border-gray-200/50">
-          <div className="flex items-center space-x-4">
-            <div className="rounded-full bg-gray-300 h-12 w-12"></div>
-            <div className="flex-1 space-y-2">
-              <div className="h-4 bg-gray-300 rounded w-1/4"></div>
-              <div className="h-3 bg-gray-300 rounded w-1/6"></div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
+// Material-UI Loading Spinner (Themed)
+const LoadingSkeleton = () => (
+  <Box 
+    display="flex" 
+    justifyContent="center" 
+    alignItems="center" 
+    sx={{ 
+      py: 10,
+      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+      borderRadius: 2,
+      margin: 2
+    }}
+  >
+    <CircularProgress 
+      size={70}
+      sx={{
+        color: '#6366f1', // Purple color matching your theme
+      }}
+    />
+  </Box>
+);
   // Get students count by form
  // Get students count by form - EXCLUDE GRADUATED STUDENTS
 const getStudentsByForm = (form) => {
